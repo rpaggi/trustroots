@@ -43,6 +43,8 @@
     vm.searchAddress = searchAddress;
     vm.mapLocate = mapLocate;
     vm.toggleTribeFilter = toggleTribeFilter;
+    vm.isTribeFilterActive = isTribeFilterActive;
+    vm.copyFiltersFromUser = copyFiltersFromUser;
     vm.isFiltersCollapsed = true;
     vm.mapLayerstyle = 'street';
     vm.isSidebarOpen = false;
@@ -197,6 +199,15 @@
     }
 
     /**
+     * Set filters to be similar to the user
+     */
+    function copyFiltersFromUser() {
+      $log.log('->copyFiltersFromUser');
+      vm.filters.tribes = angular.copy(Authentication.user.memberIds);
+      getMarkers(true);
+    }
+
+    /**
      * Toggle tribe filter
      */
     function toggleTribeFilter(tribeId) {
@@ -210,6 +221,10 @@
       }
 
       getMarkers(true);
+    }
+
+    function isTribeFilterActive(tribeId) {
+      return vm.filters.tribes.indexOf(tribeId) > -1;
     }
 
     /**

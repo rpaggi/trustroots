@@ -24,22 +24,32 @@
 
   <!-- Filters -->
   <div class="map-filters panel panel-default" ng-if="search.tribes && search.tribes.length">
-    <button type="button" class="btn btn-default" ng-click="search.isFiltersCollapsed = !search.isFiltersCollapsed">
-      Search based on Tribes
-    </button>
-
+    <div class="clearfix">
+      <a class="btn btn-md btn-default pull-left" ng-click="search.isFiltersCollapsed = !search.isFiltersCollapsed">
+        <span class="icon-right"></span> Filter by Tribes
+      </a>
+      <a class="btn btn-xs btn-default pull-right"
+         ng-click="search.copyFiltersFromUser()"
+         ng-if="app.user.member && app.user.member.length">
+        Filter by my tribes
+      </a>
+    </div>
+    {{vm.filters.tribes|json}}
     <div uib-collapse="search.isFiltersCollapsed">
-      {{search.filters.tribes | json }}
-      <ul class="tribes-list">
-        <a class="tribe" ng-repeat="tribe in ::search.tribes track by tribe._id" ng-click="search.toggleTribeFilter(tribe._id)" ng-bind="::tribe.label">
-          <div class="tribe-image"
-               tr-tribe-styles="{{::tribe}}"
-               tr-tribe-styles-dimensions="64x64"
-               tr-tribe-styles-quality="lightest">
-            <span ng-if="::!tribe.image_UUID" ng-bind="::tribe.label.charAt(0)"></span>
-          </div>
-        </li>
-      </ul>
+      <div class="list-group map-filters-tribes tribes-list">
+      <a class="list-group-item"
+         ng-repeat="tribe in ::search.tribes track by tribe._id"
+         ng-click="search.toggleTribeFilter(tribe._id);"
+         ng-class="{ active: search.isTribeFilterActive(tribe._id) }"
+         ng-bind="::tribe.label">
+        <div class="tribe-image"
+             tr-tribe-styles="{{::tribe}}"
+             tr-tribe-styles-dimensions="64x64"
+             tr-tribe-styles-quality="lightest">
+          <span ng-if="::!tribe.image_UUID" ng-bind="::tribe.label.charAt(0)"></span>
+        </div>
+      </a>
+      </div>
     </div>
   </div>
 

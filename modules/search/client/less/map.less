@@ -66,16 +66,29 @@
   top: (@navbar-height + @search-controls-gap-mobile + 70px);
   right: @search-controls-gap-mobile;
   left: @search-controls-gap-mobile;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+  border: 0;
   @media (min-width: @screen-sm-min) {
     width: 300px;
     //left: 70px;
     top: (@navbar-height + @padding-base-horizontal + 70px);
   }
+  background: #fff;
+  opacity: @search-toolbar-opacity;
+  transition: opacity 0.2s;
+  /*
+  &:hover {
+    opacity: 1;
+  }
+  */
 
   // Tribes filter
-  .tribes-list .tribe-image {
-   .square(32px);
-   line-height: 32px;
+  .tribe-image {
+    display: block;
+    .square(32px);
+    line-height: 32px;
+    margin: 0 10px 0 0;
+    float: left;
   }
 }
 
