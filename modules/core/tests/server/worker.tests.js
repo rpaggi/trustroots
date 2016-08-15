@@ -140,8 +140,13 @@ describe('worker', function() {
     jobNames.should.containEql('check unread messages');
   });
 
-  it('defines one repeating job', function() {
-    scheduledJobs.length.should.equal(1);
+  it('defines [send signup reminders] job', function() {
+    var jobNames = _.map(definedJobs, 'name');
+    jobNames.should.containEql('send signup reminders');
+  });
+
+  it('defines two repeating jobs', function() {
+    scheduledJobs.length.should.equal(2);
   });
 
   it('only schedules defined jobs', function() {

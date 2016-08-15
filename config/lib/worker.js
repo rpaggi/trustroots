@@ -22,9 +22,17 @@ exports.start = function(options, callback) {
       require(path.resolve('./modules/messages/server/jobs/message-unread.server.job'))
     );
 
+    agenda.define(
+      'send signup reminders',
+      { lockLifetime: 10000, concurrency: 10 },
+      require(path.resolve('./modules/users/server/jobs/user-finish-signup.server.job'))
+    );
+
     // Schedule job(s)
 
     agenda.every('5 minutes', 'check unread messages');
+
+    agenda.every('30 minutes', 'send signup reminders');
 
     // Start worker
 

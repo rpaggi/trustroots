@@ -148,7 +148,7 @@ exports.sendSignupEmailConfirmation = function(user, callback) {
   var params = exports.addEmailBaseTemplateParams({
     subject: 'Confirm Email',
     name: user.displayName,
-    email: user.emailTemporary,
+    email: user.emailTemporary || user.email,
     urlConfirmPlainText: urlConfirm,
     urlConfirm: analyticsHandler.appendUTMParams(urlConfirm, {
       source: 'transactional-email',
@@ -161,6 +161,26 @@ exports.sendSignupEmailConfirmation = function(user, callback) {
   exports.renderEmailAndSend('signup', params, callback);
 };
 
+exports.sendSignupEmailReminder = function(user, callback) {
+
+  var urlConfirm = url + '/confirm-email/' + user.emailToken + '?signup',
+      utmCampaign = 'signup-reminder';
+
+  var params = exports.addEmailBaseTemplateParams({
+    subject: 'Complete your signup to Trustroots',
+    name: user.displayName,
+    email: user.emailTemporary || user.email,
+    urlConfirmPlainText: urlConfirm,
+    urlConfirm: analyticsHandler.appendUTMParams(urlConfirm, {
+      source: 'transactional-email',
+      medium: 'email',
+      campaign: utmCampaign
+    }),
+    utmCampaign: utmCampaign
+  });
+
+  exports.renderEmailAndSend('signup-reminder', params, callback);
+};
 
 /**
  * Add several parameters to be used to render transactional emails
