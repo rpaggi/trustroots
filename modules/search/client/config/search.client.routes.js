@@ -19,9 +19,14 @@
         resolve: {
           // A string value resolves to a service
           SettingsService: 'SettingsService',
-
           appSettings: function(SettingsService) {
             return SettingsService.get();
+          },
+
+          // A string value resolves to a service
+          TribesService: 'TribesService',
+          tribes: function(TribesService) {
+            return TribesService.query();
           }
         },
         data: {

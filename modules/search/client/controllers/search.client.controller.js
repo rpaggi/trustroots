@@ -6,7 +6,7 @@
     .controller('SearchController', SearchController);
 
   /* @ngInject */
-  function SearchController($scope, $http, $q, $stateParams, $timeout, $analytics, OffersService, leafletBoundsHelpers, Authentication, leafletData, messageCenterService, MapLayersFactory, appSettings, locker, LocationService) {
+  function SearchController($log, $scope, $http, $q, $stateParams, $timeout, $analytics, OffersService, leafletBoundsHelpers, Authentication, leafletData, messageCenterService, MapLayersFactory, appSettings, locker, LocationService, tribes) {
 
     // `search-map-canvas` is id of <leaflet> element
     var mapId = 'search-map-canvas';
@@ -37,12 +37,15 @@
     var vm = this;
 
     // Exposed to the view
+    vm.tribes = tribes;
     vm.getMarkers = getMarkers;
     vm.enterSearchAddress = enterSearchAddress;
     vm.searchAddress = searchAddress;
     vm.mapLocate = mapLocate;
+    vm.toggleTribeFilter = toggleTribeFilter;
+    vm.isFiltersCollapsed = true;
     vm.mapLayerstyle = 'street';
-    vm.sidebarOpen = false;
+    vm.isSidebarOpen = false;
     vm.offer = false; // Offer to show
     vm.notFound = false;
     vm.currentSelection = {
@@ -72,7 +75,9 @@
       attributionControl: false, // Adding this manually below
       keyboard: true,
       worldCopyJump: true,
+      zoomControlPosition: 'bottomright',
       controls: {
+        scale: true,
         layers: {
           visible: true,
           position: 'bottomleft',
@@ -103,6 +108,12 @@
       southWestLat: 0
     };
 
+    // Collection of active filters
+    vm.filters = {
+      tribes: []
+    };
+
+    // Init
     activate();
 
     /**
@@ -163,7 +174,7 @@
           vm.currentSelection.latlngs = e.latlng;
           vm.mapLayers.overlays.selectedOffers.visible = true;
 
-          vm.sidebarOpen = true;
+          vm.isSidebarOpen = true;
 
           $analytics.eventTrack('offer.preview', {
             category: 'search.map',
@@ -178,11 +189,27 @@
        * Sidebar & markers react to these events
        */
       $scope.$on(listenerPrefix + '.click', function() {
-        vm.sidebarOpen = false;
+        vm.isSidebarOpen = false;
         vm.offer = false;
         vm.mapLayers.overlays.selectedOffers.visible = false;
       });
 
+    }
+
+    /**
+     * Toggle tribe filter
+     */
+    function toggleTribeFilter(tribeId) {
+      $log.log('->toggleTribeFilter: ' + tribeId);
+
+      var index = vm.filters.tribes.indexOf(tribeId);
+      if (index !== -1) {
+        vm.filters.tribes.splice(index, 1);
+      } else {
+        vm.filters.tribes.push(tribeId);
+      }
+
+      getMarkers(true);
     }
 
     /**
@@ -228,7 +255,8 @@
     /**
      * Load markers to the current bounding box
      */
-    function getMarkers() {
+    function getMarkers(forcedRefresh) {
+      $log.log('->getMarkers: ' + forcedRefresh);
 
       // Don't proceed if:
       // - Map does not have bounds set (typically at map init these might be missing for some milliseconds)
@@ -236,9 +264,15 @@
       if (!vm.mapBounds.northEast || !Authentication.user.public) return;
 
       // If we get out of the boundig box of the last api query we have to call the API for the new markers
-      if (vm.mapBounds.northEast.lng > vm.mapLastBounds.northEastLng || vm.mapBounds.northEast.lat > vm.mapLastBounds.northEastLat || vm.mapBounds.southWest.lng < vm.mapLastBounds.southWestLng || vm.mapBounds.southWest.lat < vm.mapLastBounds.southWestLat) {
+      if (forcedRefresh ||
+          vm.mapBounds.northEast.lng > vm.mapLastBounds.northEastLng ||
+          vm.mapBounds.northEast.lat > vm.mapLastBounds.northEastLat ||
+          vm.mapBounds.southWest.lng < vm.mapLastBounds.southWestLng ||
+          vm.mapBounds.southWest.lat < vm.mapLastBounds.southWestLat) {
+
         // We add a margin to the boundings depending on the zoom level
         var boundingDelta = 10 / vm.mapCenter.zoom;
+
         // Saving the current bounding box amd zoom
         vm.mapLastBounds = {
           northEastLng: vm.mapBounds.northEast.lng + boundingDelta,
@@ -246,17 +280,23 @@
           southWestLng: vm.mapBounds.southWest.lng - boundingDelta,
           southWestLat: vm.mapBounds.southWest.lat - boundingDelta
         };
+
         vm.lastZoom = vm.mapCenter.zoom;
+
+
         // API Call
         OffersService.query({
           northEastLng: vm.mapLastBounds.northEastLng,
           northEastLat: vm.mapLastBounds.northEastLat,
           southWestLng: vm.mapLastBounds.southWestLng,
-          southWestLat: vm.mapLastBounds.southWestLat
+          southWestLat: vm.mapLastBounds.southWestLat,
+          filters: vm.filters
         }, function(offers) {
+
           // Remove last markers
           // eslint-disable-next-line new-cap
           vm.pruneCluster.RemoveMarkers();
+
           // Let's go through those markers
           // This loop might look weird but it's actually speed optimized :P
           for (var i = -1, len = offers.length; ++i < len;) {
@@ -270,6 +310,7 @@
             // eslint-disable-next-line new-cap
             vm.pruneCluster.RegisterMarker(marker);
           }
+
           // Update markers
           // eslint-disable-next-line new-cap
           vm.pruneCluster.ProcessView();
@@ -442,7 +483,7 @@
 
         vm.currentSelection.latlngs = vm.offer.location;
         vm.mapLayers.overlays.selectedOffers.visible = true;
-        vm.sidebarOpen = true;
+        vm.isSidebarOpen = true;
 
         vm.mapCenter = {
           lat: vm.offer.location[0],

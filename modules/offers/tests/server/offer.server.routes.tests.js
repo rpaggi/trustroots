@@ -318,6 +318,26 @@ describe('Offer CRUD tests', function() {
       });
   });
 
+  it('should return error when missing bounding box parameter', function(done) {
+    agent.post('/api/auth/signin')
+      .send(credentials)
+      .expect(200)
+      .end(function(signinErr) {
+        // Handle signin error
+        if (signinErr) return done(signinErr);
+
+        // Missing `southWestLng` paramter
+        agent.get('/api/offers' +
+            '?northEastLat=32.89472514359572' +
+            '&northEastLng=25.598493303571427' +
+            '&southWestLat=-20.49068931208608'
+          )
+          .expect(400)
+          .end(done);
+
+      });
+  });
+
   afterEach(function(done) {
     // Uggggly pyramid revenge!
     User.remove().exec(function() {
