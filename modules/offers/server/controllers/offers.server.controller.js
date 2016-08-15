@@ -121,23 +121,39 @@ exports.create = function(req, res) {
  */
 exports.list = function(req, res) {
 
+  console.log('->list');
+  console.log(req.query);
+
+  var filters;
+
   if (!req.user) {
     return res.status(403).send({
       message: errorHandler.getErrorMessageByKey('forbidden')
     });
   }
 
+  // Missing bounding box query parameters
+  if (!req.query.southWestLat || !req.query.southWestLng || !req.query.northEastLat || !req.query.northEastLng) {
+    return res.status(400).send({
+      message: errorHandler.getErrorMessageByKey('default')
+    });
+  }
+
+  // Parse filters
+  if (req.query.filters) {
+    filters = JSON.parse(req.query.filters);
+    console.log(filters);
+  }
+/*
   Offer.find(
     {
       $or: [
         { status: 'yes' },
         { status: 'maybe' }
       ],
-      /**
-       * Note:
-       * http://docs.mongodb.org/manual/reference/operator/query/box
-       * -> It's latitude first as in the database, not longitude first as in the documentation
-       */
+      // Note:
+      // http://docs.mongodb.org/manual/reference/operator/query/box
+      // -> It's latitude first as in the database, not longitude first as in the documentation
       locationFuzzy: {
         $geoWithin: {
           $box: [
@@ -149,7 +165,138 @@ exports.list = function(req, res) {
     },
     'locationFuzzy status user'
   )
-  .exec(function(err, offers) {
+*/
+/*
+db.offers.aggregate([
+  {
+    $match: {
+      locationFuzzy: {
+        $geoWithin: {
+          $box: [
+            [23.24469595130604, -24.0166015625],
+            [62.909073282636484, 54.294921875]
+          ]
+        }
+      }
+    }
+  },
+  {
+    $match: {
+      $or: [
+        { status: 'yes' },
+        { status: 'maybe' }
+      ]
+    }
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "user",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  {
+    $match: {
+      "user.member": {
+        $elemMatch: {
+          tag: ObjectId("5708eb88afa4afb08cc9051e")
+        }
+      }
+    }
+  },
+
+  */
+
+  // Basic query has always bounding box
+  var query = [{
+    $match: {
+      locationFuzzy: {
+        $geoWithin: {
+          // Note:
+          // http://docs.mongodb.org/manual/reference/operator/query/box
+          // -> It's latitude first as in the database, not longitude first as in the documentation
+          $box: [
+            [Number(req.query.southWestLat), Number(req.query.southWestLng)],
+            [Number(req.query.northEastLat), Number(req.query.northEastLng)]
+          ]
+        }
+      }
+    }
+  }];
+
+  // Status filter
+  query.push({
+    $match: {
+      $or: [
+        { status: 'yes' },
+        { status: 'maybe' }
+      ]
+    }
+  });
+
+  // Rest of the filters are based on user schema
+  query.push({
+    $lookup: {
+      from: 'users',
+      localField: 'user',
+      foreignField: '_id',
+      as: 'user'
+    }
+  });
+
+  // Tribes filter
+  if (filters && filters.tribes && filters.tribes.length > 0) {
+
+    var tribeQueries = [];
+
+    filters.tribes.forEach(function(tribeId) {
+      console.log('validating ' + tribeId);
+
+      // Return failure if tribe id is invalid
+      if (!mongoose.Types.ObjectId.isValid(tribeId)) {
+        return res.status(400).send({
+          message: errorHandler.getErrorMessageByKey('invalid-id')
+        });
+      }
+
+      tribeQueries.push({ 'user.member.tag': new mongoose.Types.ObjectId(tribeId) });
+
+    });
+
+    // Build the query
+    if (tribeQueries.length > 1) {
+      // Match multible tribes
+      query.push({
+        $match: {
+          $or: tribeQueries
+        }
+      });
+    } else {
+      // Just one tribe
+      query.push({
+        $match: tribeQueries[0]
+      });
+    }
+
+  }
+
+  // Pick fields to receive
+  query.push({
+    $project: {
+      _id: '$_id',
+      user: '$user._id',
+      locationFuzzy: '$locationFuzzy',
+      status: '$status',
+      tribes: '$user.member'
+    }
+  });
+
+  console.log('->Offer.aggregate:');
+  var util = require('util');
+  console.log(util.inspect(query, false, null));
+
+  Offer.aggregate(query).exec(function(err, offers) {
     if (err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
