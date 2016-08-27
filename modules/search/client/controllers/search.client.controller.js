@@ -200,18 +200,24 @@
 
     function onTribeFiltersChange(keepFilterByUserTribes) {
       $log.log('->onTribeFiltersChange');
-      if(vm.chosenTribes.length) {
+
+      // Collect a list consisting only tribe id's.
+      // The actual collection used with `select` input is
+      // much more elaborate, consisting tribe objects.
+      if (vm.chosenTribes.length) {
         angular.forEach(vm.chosenTribes, function(tribe) {
           this.push(tribe._id);
         }, vm.filters.tribes);
-      }
-      else {
+      } else {
         vm.filters.tribes = [];
       }
-      getMarkers(true);
-      if(!keepFilterByUserTribes) {
+
+      if (!keepFilterByUserTribes) {
         vm.filterByUsersTribes = false;
       }
+
+      // Refresh the map
+      getMarkers(true);
     }
 
     /**
