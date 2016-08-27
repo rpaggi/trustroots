@@ -28,6 +28,14 @@
           TribesService: 'TribesService',
           tribes: function(TribesService) {
             return TribesService.query();
+          },
+
+          // A string value resolves to a service
+          UserProfilesService: 'UserProfilesService',
+          profile: function(UserProfilesService, Authentication) {
+            return UserProfilesService.get({
+              username: Authentication.user.username
+            });
           }
         }
       }).

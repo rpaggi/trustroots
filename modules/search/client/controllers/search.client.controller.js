@@ -6,7 +6,7 @@
     .controller('SearchController', SearchController);
 
   /* @ngInject */
-  function SearchController($log, $scope, $http, $q, $stateParams, $timeout, $analytics, OffersService, leafletBoundsHelpers, Authentication, leafletData, messageCenterService, MapLayersFactory, appSettings, locker, LocationService, tribes) {
+  function SearchController($log, $scope, $http, $q, $stateParams, $timeout, $analytics, OffersService, leafletBoundsHelpers, Authentication, leafletData, messageCenterService, MapLayersFactory, appSettings, locker, LocationService, tribes, profile) {
 
     // `search-map-canvas` is id of <leaflet> element
     var mapId = 'search-map-canvas';
@@ -42,12 +42,12 @@
     vm.enterSearchAddress = enterSearchAddress;
     vm.searchAddress = searchAddress;
     vm.mapLocate = mapLocate;
-    vm.toggleTribeFilter = toggleTribeFilter;
-    vm.isTribeFilterActive = isTribeFilterActive;
-    vm.copyFiltersFromUser = copyFiltersFromUser;
-    vm.isFiltersCollapsed = true;
+    vm.onUserTribesFiltersChange = onUserTribesFiltersChange;
+    vm.onTribeFiltersChange = onTribeFiltersChange;
+    vm.filterByUsersTribes = false;
+    vm.chosenTribes = [];
     vm.mapLayerstyle = 'street';
-    vm.isSidebarOpen = false;
+    vm.isSidebarOpen = true;
     vm.offer = false; // Offer to show
     vm.notFound = false;
     vm.currentSelection = {
@@ -191,40 +191,44 @@
        * Sidebar & markers react to these events
        */
       $scope.$on(listenerPrefix + '.click', function() {
-        vm.isSidebarOpen = false;
+        // vm.isSidebarOpen = false;
         vm.offer = false;
         vm.mapLayers.overlays.selectedOffers.visible = false;
       });
 
     }
 
+    function onTribeFiltersChange(keepFilterByUserTribes) {
+      $log.log('->onTribeFiltersChange');
+      if(vm.chosenTribes.length) {
+        angular.forEach(vm.chosenTribes, function(tribe) {
+          this.push(tribe._id);
+        }, vm.filters.tribes);
+      }
+      else {
+        vm.filters.tribes = [];
+      }
+      getMarkers(true);
+      if(!keepFilterByUserTribes) {
+        vm.filterByUsersTribes = false;
+      }
+    }
+
     /**
      * Set filters to be similar to the user
      */
-    function copyFiltersFromUser() {
-      $log.log('->copyFiltersFromUser');
-      vm.filters.tribes = angular.copy(Authentication.user.memberIds);
-      getMarkers(true);
-    }
-
-    /**
-     * Toggle tribe filter
-     */
-    function toggleTribeFilter(tribeId) {
-      $log.log('->toggleTribeFilter: ' + tribeId);
-
-      var index = vm.filters.tribes.indexOf(tribeId);
-      if (index !== -1) {
-        vm.filters.tribes.splice(index, 1);
-      } else {
-        vm.filters.tribes.push(tribeId);
+    function onUserTribesFiltersChange() {
+      $log.log('->copyTribeFiltersFromUser: ' + vm.filterByUsersTribes);
+      $log.log(profile);
+      if (vm.filterByUsersTribes && profile.member && profile.member.length) {
+        angular.forEach(profile.member, function(membership) {
+          // If it's tribe, not tag, add it to the filter
+          if (membership.tag.tribe) {
+            this.push(membership.tag);
+          }
+        }, vm.chosenTribes);
+        onTribeFiltersChange(true);
       }
-
-      getMarkers(true);
-    }
-
-    function isTribeFilterActive(tribeId) {
-      return vm.filters.tribes.indexOf(tribeId) > -1;
     }
 
     /**

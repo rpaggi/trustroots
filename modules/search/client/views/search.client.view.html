@@ -1,57 +1,4 @@
-<section class="search-map">
-
-  <!-- Location search -->
-  <div class="form-group map-location-search" ng-class="{'active': search.searchQuery !== '' || search.searchActive }">
-    <div class="input-group input-location">
-      <label for="search-query" class="sr-only">Search places</label>
-      <input type="text"
-             id="search-query"
-             class="form-control input-lg"
-             placeholder="Search places"
-             ng-focus="search.searchActive = true"
-             ng-blur="search.searchActive = false"
-             ng-model="search.searchQuery"
-             tr-location
-             tr-location-center="search.mapCenter"
-             tr-location-bounds="search.mapBounds">
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-lg btn-default" ng-click="search.searchAddress()" uib-tooltip="Search" tooltip-placement="bottom">
-          <i class="icon-search"></i>
-        </button>
-      </span>
-    </div>
-  </div>
-
-  <!-- Filters -->
-  <div class="map-filters panel panel-default" ng-if="search.tribes && search.tribes.length">
-    <div class="clearfix">
-      <a class="btn btn-md btn-default pull-left" ng-click="search.isFiltersCollapsed = !search.isFiltersCollapsed">
-        <span class="icon-right"></span> Filter by Tribes
-      </a>
-      <a class="btn btn-xs btn-default pull-right"
-         ng-click="search.copyFiltersFromUser()"
-         ng-if="app.user.member && app.user.member.length">
-        Filter by my tribes
-      </a>
-    </div>
-    {{vm.filters.tribes|json}}
-    <div uib-collapse="search.isFiltersCollapsed">
-      <div class="list-group map-filters-tribes tribes-list">
-      <a class="list-group-item"
-         ng-repeat="tribe in ::search.tribes track by tribe._id"
-         ng-click="search.toggleTribeFilter(tribe._id);"
-         ng-class="{ active: search.isTribeFilterActive(tribe._id) }"
-         ng-bind="::tribe.label">
-        <div class="tribe-image"
-             tr-tribe-styles="{{::tribe}}"
-             tr-tribe-styles-dimensions="64x64"
-             tr-tribe-styles-quality="lightest">
-          <span ng-if="::!tribe.image_UUID" ng-bind="::tribe.label.charAt(0)"></span>
-        </div>
-      </a>
-      </div>
-    </div>
-  </div>
+<section class="search">
 
   <!-- Map overlay messages -->
   <div ng-if="app.user && !app.user.public && !search.locationNotFound" class="search-overlay-message">
@@ -75,17 +22,86 @@
              event-broadcast="search.mapEvents"></leaflet>
   </div>
 
-  <div class="search-map-sidebar" ng-if="search.isSidebarOpen">
+  <button class="btn btn-link search-map-toggle"
+          ng-click="search.isSidebarOpen = false"
+          aria-label="Collapse side panel"
+          uib-tooltip="Collapse side panel"
+          tooltip-placement="left">
+    <i class="icon-right hidden-xs"></i>
+    <span class="visible-xs">Back to map</span>
+  </button>
 
-    <button class="btn btn-link search-map-toggle" ng-click="search.isSidebarOpen = false" aria-label="Close search results" uib-tooltip="Collapse side panel" tooltip-placement="left">
-      <i class="icon-right hidden-xs"></i>
-      <span class="visible-xs">Back to map</span>
-    </button>
+  <div class="search-sidebar" ng-show="search.isSidebarOpen">
 
-    <div class="search-list">
+    <!--
+    <h4 class="text-muted">Search</h4>
+    <hr class="hr-gray" />
+    -->
+
+    <!-- Location search -->
+    <div class="search-sidebar-section">
+      <div class="form-group search-sidear-place" ng-class="{'active': search.searchQuery !== '' || search.searchActive }">
+        <div class="input-group input-location">
+          <label for="search-query" class="sr-only">Search places</label>
+          <input type="text"
+                 id="search-query"
+                 class="form-control input-lg"
+                 placeholder="Search places"
+                 ng-focus="search.searchActive = true"
+                 ng-blur="search.searchActive = false"
+                 ng-model="search.searchQuery"
+                 tr-location
+                 tr-location-center="search.mapCenter"
+                 tr-location-bounds="search.mapBounds">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-lg btn-default" ng-click="search.searchAddress()" uib-tooltip="Search" tooltip-placement="bottom">
+              <i class="icon-search"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <!-- /Location search -->
+
+    <!-- Filters -->
+    <div class="search-sidebar-section search-sidebar-filters" ng-if="search.tribes && search.tribes.length">
+      <label tr-switch tr-switch-side="right">
+        <input type="checkbox"
+               ng-disabled="!app.user.member || !app.user.member.length"
+               ng-change="search.onUserTribesFiltersChange()"
+               ng-model="search.filterByUsersTribes">
+        Show only members from my tribes
+      </label>
+
+      <p ng-if="!app.user.member || !app.user.member.length">
+        <span class="icon-right"></span> <a ui-sref="tribes.list" class="text-muted">Join tribes</a>
+      </p>
+
+      {{search.chosenTribes|json}}
+
+      <br><br>
+
+      <label class="sr-only" for="languages">Tribes</label>
+      <select multiple
+              chosen
+              id="tribes"
+              class="form-control chosen-lg"
+              placeholder-text-multiple="'Filter by tribes...'"
+              no-results-text="'Cannot find '"
+              search-contains="true"
+              ng-change="search.onTribeFiltersChange()"
+              ng-model="search.chosenTribes"
+              ng-options="tribe.label for tribe in ::search.tribes track by tribe._id">
+      </select>
+
+    </div>
+    <!-- /Filters -->
+
+    <!-- Search results -->
+    <div class="search-sidebar-section search-sidebar-results">
 
       <!-- Profile loading -->
-      <div class="search-result panel panel-default panel-loading" ng-if="!search.offer.$resolved">
+      <div class="search-result panel panel-default panel-loading" ng-if="search.offer && !search.offer.$resolved">
         <div class="panel-body">
           <div tr-avatar data-size="32" data-link="false" data-source="none"></div>
           <h4>
@@ -155,12 +171,12 @@
       </div>
       <!-- /Profile -->
 
-      <div class="search-list-instructions">
-        Note that locations on the map are not precise.
-      </div>
+      <p class="text-muted text-center">
+        <small>Note that locations on the map are not precise.</small>
+      </p>
 
     </div>
-    <!-- /.search-list -->
+    <!-- /.search-sidebar-results -->
 
   </div>
   <!-- /.search-map-sidebar -->

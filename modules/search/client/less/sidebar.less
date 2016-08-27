@@ -1,5 +1,8 @@
+@search-sidebar-bg:    rgba(255, 255, 255, 0.98);
+@search-sidebar-width: 300px;
+
 // Styled as 'mobile first'
-.search-map-sidebar {
+.search-sidebar {
   position: absolute;
   width: auto;
   top: @navbar-height;
@@ -25,7 +28,7 @@
   }
 }
 
-.search-map-toggle {
+.search-sidebar-toggle {
   position: fixed;
   z-index: @zindex-navbar;
   padding: 0;
@@ -59,8 +62,8 @@
     box-shadow: none;
     height: 40px;
     width: 15px;
-    left: -15px;
-    top: 10px;
+    left: (@search-sidebar-width - 15px);
+    top: (@navbar-height + 10px);
     &,
     &:hover,
     &:focus,
@@ -71,31 +74,93 @@
   }
 }
 
-.search-list {
+
+
+.search-sidebar-filters {
+  /*
+  &:hover {
+    opacity: 1;
+  }
+  */
+
+  // Tribes filter
+  /*
+  .tribe-image {
+    display: block;
+    .square(32px);
+    line-height: 32px;
+    margin: 0 10px 0 0;
+    float: left;
+  }
+  */
+}
+
+.search-sidear-place {
+  //position: absolute;
+  //z-index: @zindex-navbar;
+  width: auto;
+  margin-right: 0;
+  border: 1px solid @brand-primary;
+  /*
+  .input-group {
+    border: 1px solid @brand-primary;
+  }
+  */
+
+  .btn,
+  #search-query {
+    border-color: #fff;
+    border-radius: 0;
+    box-shadow: none;
+    &, &:disabled {
+      background: #fff;
+    }
+    &:active,
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+  #search-query {
+    border-right: 0;
+  }
+  .btn {
+    border-left: 0;
+  }
+}
+
+
+.search-sidebar-section {
+  padding: 5px;
+  margin: 5px;
+  @media (min-width: @screen-sm-min) {
+    padding: 10px;
+  }
+  border-bottom: 1px solid @gray-lighter;
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+/*
+.search-sidebar-results {
   display: block;
   float: left;
   margin: 0;
   width: 100%;
   height: 100%;
   overflow: scroll;
-  padding: 5px 5px 50px 5px;
-  @media (min-width: @screen-sm-min) {
-    padding: 10px;
-  }
-  .panel {
-    margin-bottom: 5px;
-  }
 }
+*/
 
-.search-list-instructions {
-  color: @gray;
-  text-align: center;
-  font-size: 12px;
+/*
+.search-sidebar-results-instructions {
   padding: 10px;
   @media (max-width: @screen-xs-max) {
     display: none;
   }
 }
+*/
 
 .search-result {
   user-select: none;

@@ -250,19 +250,17 @@ db.offers.aggregate([
 
     var tribeQueries = [];
 
-    filters.tribes.forEach(function(tribeId) {
+    var isTribeFilterValid = filters.tribes.every(function(tribeId) {
       console.log('validating ' + tribeId);
-
-      // Return failure if tribe id is invalid
-      if (!mongoose.Types.ObjectId.isValid(tribeId)) {
-        return res.status(400).send({
-          message: errorHandler.getErrorMessageByKey('invalid-id')
-        });
-      }
-
-      tribeQueries.push({ 'user.member.tag': new mongoose.Types.ObjectId(tribeId) });
-
+      // Return failure if tribe id is invalid, otherwise add id to query array
+      return mongoose.Types.ObjectId.isValid(tribeId) && tribeQueries.push({ 'user.member.tag': new mongoose.Types.ObjectId(tribeId) });
     });
+
+    if (!isTribeFilterValid) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessageByKey('invalid-id')
+      });
+    }
 
     // Build the query
     if (tribeQueries.length > 1) {
