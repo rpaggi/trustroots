@@ -24,22 +24,32 @@
     .directive('trLocation', trLocationDirective);
 
   /* @ngInject */
-  function trLocationDirective($compile, $timeout, LocationService) {
+  function trLocationDirective($log, $compile, $timeout, LocationService) {
     return {
       restrict: 'A',
       require: 'ngModel',
       scope: {
         value: '=ngModel',
-        trLocationCenter: '=?', // `?` makes this optional
-        trLocationBounds: '=?'  // `?` makes this optional
+        // `?` makes these optional
+        trLocationNotfound: '=?',
+        trLocationCenter: '=?',
+        trLocationBounds: '=?'
       },
       replace: false,
       link: function (scope, element, attr, ngModel) {
 
         // Event handler to stop submitting the surrounding form
         element.bind('keydown keypress', function($event) {
+          scope.trLocationNotfound = false;
+
+          // On enter
           if ($event.which === 13) {
+            // Signal to controller that enter was pressed
+            scope.enterActive = true;
             $event.preventDefault();
+          }
+          else {
+            scope.enterActive = false;
           }
         });
 
@@ -75,7 +85,27 @@
          * Get geolocation suggestions
          */
         function searchSuggestions(query) {
-          return LocationService.suggestions(query);
+          $scope.trLocationNotfound = false;
+          return LocationService.suggestions(query).then(function(suggestions) {
+            // Enter was pressed before we got these results, thus just pick first
+            if($scope.enterActive) {
+              $scope.enterActive = false;
+              if(suggestions.length) {
+                locate(suggestions[0]);
+                $scope.value = suggestions[0].trTitle;
+              }
+              else {
+                // Don't return suggestions list
+                $scope.trLocationNotfound = query;
+              }
+              // Don't return suggestions list
+              return [];
+            }
+            // Return suggestions list
+            else {
+              return suggestions;
+            }
+          });
         }
 
         /**
@@ -85,17 +115,24 @@
           $timeout(function() {
             $scope.value = $label;
           });
+          locate($item);
+        }
+
+        /**
+         * Modify `trLocationCenter` or `trLocationBounds` objects
+         */
+        function locate(location) {
 
           // Set center bounds for (Angular-UI-Leaflet) model
           // Bounds is prioritized over center
-          var bounds = LocationService.getBounds($item);
+          var bounds = LocationService.getBounds(location);
 
           if (angular.isObject($scope.trLocationBounds) && bounds) {
             $scope.trLocationBounds = bounds;
           } else if (angular.isObject($scope.trLocationCenter)) {
             // If no bounds was found, check `center`
             // Set center coordinates for (Angular-UI-Leaflet) model
-            var center = LocationService.getCenter($item);
+            var center = LocationService.getCenter(location);
             if (center) {
               angular.extend($scope.trLocationCenter, center);
             }

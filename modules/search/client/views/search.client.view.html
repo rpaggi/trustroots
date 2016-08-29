@@ -7,9 +7,6 @@
   <div ng-show="search.mapCenter.zoom <= search.mapMinimumZoom && app.user.public && !search.locationNotFound" class="text-uppercase search-overlay-message">
     Zoom in closer to see everyone
   </div>
-  <div ng-show="search.locationNotFound" class="search-overlay-message">
-    We could not find such a place...
-  </div>
 
   <div ng-if="search.mapCenter" ng-class="{'leaflet-layerstyle-satellite': (search.mapLayerstyle === 'satellite')}">
     <leaflet id="search-map-canvas"
@@ -40,57 +37,68 @@
 
     <!-- Location search -->
     <div class="search-sidebar-section">
-      <div class="form-group search-sidear-place" ng-class="{'active': search.searchQuery !== '' || search.searchActive }">
+      <div class="form-group search-sidear-place" ng-class="{'has-warning': search.locationNotFound}">
         <div class="input-group input-location">
           <label for="search-query" class="sr-only">Search places</label>
           <input type="text"
                  id="search-query"
                  class="form-control input-lg"
                  placeholder="Search places"
-                 ng-focus="search.searchActive = true"
-                 ng-blur="search.searchActive = false"
                  ng-model="search.searchQuery"
                  tr-location
                  tr-location-center="search.mapCenter"
-                 tr-location-bounds="search.mapBounds">
+                 tr-location-bounds="search.mapBounds"
+                 tr-location-notfound="search.locationNotFound">
           <span class="input-group-btn">
             <button type="button" class="btn btn-lg btn-default" ng-click="search.searchAddress()" uib-tooltip="Search" tooltip-placement="bottom">
               <i class="icon-search"></i>
             </button>
           </span>
         </div>
+        <p class="help-block" ng-if="search.locationNotFound">
+          We could not find <em ng-bind="::search.locationNotFound"></em><br>
+          <small>Make sure your search is spelled correctly.</small>
+        </p>
       </div>
     </div>
     <!-- /Location search -->
 
     <!-- Filters -->
     <div class="search-sidebar-section search-sidebar-filters" ng-if="search.tribes && search.tribes.length">
-      <label tr-switch tr-switch-side="right">
-        <input type="checkbox"
-               ng-disabled="!app.user.member || !app.user.member.length"
-               ng-change="search.onUserTribesFiltersChange()"
-               ng-model="search.filterByUsersTribes">
-        Show only members from my tribes
-      </label>
 
-      <p ng-if="!app.user.member || !app.user.member.length">
-        <span class="icon-right"></span> <a ui-sref="tribes.list" class="text-muted">Join tribes</a>
-      </p>
+      <h4>Filter by tribes</h4>
 
-      <br><br>
+      <div class="form-group">
+        <label tr-switch tr-switch-side="right" ng-if="app.user.member && app.user.member.length">
+          <input type="checkbox"
+                 ng-disabled="!app.user.member || !app.user.member.length"
+                 ng-change="search.onUserTribesFiltersChange()"
+                 ng-model="search.filterByUsersTribes">
+          <ng-pluralize count="app.user.member.length" when="{ 'one': 'Show only members from my tribe', 'other': 'Show only members from my tribes' }"></ng-pluralize>
+        </label>
+        <p ng-if="!app.user.member || !app.user.member.length" class="help-block">
+          <span class="icon-right"></span> <a ui-sref="tribes.list" class="text-muted">Join tribes to find similar users</a>
+        </p>
+      </div>
 
+      <div class="form-group">
       <label class="sr-only" for="languages">Tribes</label>
       <select multiple
               chosen
               id="tribes"
               class="form-control chosen-lg"
-              placeholder-text-multiple="'Filter by tribes...'"
+              placeholder-text-multiple="'Choose tribes'"
               no-results-text="'Cannot find '"
               search-contains="true"
               ng-change="search.onTribeFiltersChange()"
               ng-model="search.chosenTribes"
               ng-options="tribe.label for tribe in ::search.tribes track by tribe._id">
       </select>
+
+      <p class="text-right help-block" ng-if="search.chosenTribes.length > 1">
+        <a class="btn btn-link btn-sm" ng-click="search.chosenTribes = []; search.filterByUsersTribes = false;">Clear tribes</a>
+      </p>
+      </div>
 
     </div>
     <!-- /Filters -->
@@ -169,7 +177,8 @@
       </div>
       <!-- /Profile -->
 
-      <p class="text-muted text-center">
+      <p class="text-muted text-center hidden-xs">
+        <br>
         <small>Note that locations on the map are not precise.</small>
       </p>
 

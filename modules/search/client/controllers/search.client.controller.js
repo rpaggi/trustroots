@@ -227,12 +227,14 @@
       $log.log('->copyTribeFiltersFromUser: ' + vm.filterByUsersTribes);
       $log.log(profile);
       if (vm.filterByUsersTribes && profile.member && profile.member.length) {
+        var tribes = [];
         angular.forEach(profile.member, function(membership) {
           // If it's tribe, not tag, add it to the filter
           if (membership.tag.tribe) {
-            this.push(membership.tag);
+            tribes.push(membership.tag);
           }
-        }, vm.chosenTribes);
+        });
+        vm.chosenTribes = tribes;
         onTribeFiltersChange(true);
       }
     }
