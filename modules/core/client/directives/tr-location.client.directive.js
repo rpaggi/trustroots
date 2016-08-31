@@ -24,13 +24,14 @@
     .directive('trLocation', trLocationDirective);
 
   /* @ngInject */
-  function trLocationDirective($log, $compile, $timeout, LocationService) {
+  function trLocationDirective($compile, $timeout, LocationService) {
     return {
       restrict: 'A',
       require: 'ngModel',
       scope: {
         value: '=ngModel',
         // `?` makes these optional
+        trLocationInit: '=?',
         trLocationNotfound: '=?',
         trLocationCenter: '=?',
         trLocationBounds: '=?'
@@ -45,11 +46,10 @@
           // On enter
           if ($event.which === 13) {
             // Signal to controller that enter was pressed
-            scope.enterActive = true;
+            scope.skipSuggestions = true;
             $event.preventDefault();
-          }
-          else {
-            scope.enterActive = false;
+          } else {
+            scope.skipSuggestions = false;
           }
         });
 
@@ -81,6 +81,18 @@
         vm.searchSuggestions = searchSuggestions;
         vm.onSelect = onSelect;
 
+        // Initialize controller
+        activate();
+
+        function activate() {
+          // If directive has init value, use it to search a location
+          if (angular.isDefined($scope.trLocationInit) && angular.isString($scope.trLocationInit)) {
+            // If location is found, don't show suggestions list but activate first found result
+            $scope.skipSuggestions = true;
+            searchSuggestions($scope.trLocationInit);
+          }
+        }
+
         /**
          * Get geolocation suggestions
          */
@@ -88,21 +100,19 @@
           $scope.trLocationNotfound = false;
           return LocationService.suggestions(query).then(function(suggestions) {
             // Enter was pressed before we got these results, thus just pick first
-            if($scope.enterActive) {
-              $scope.enterActive = false;
-              if(suggestions.length) {
+            if ($scope.skipSuggestions) {
+              $scope.skipSuggestions = false;
+              if (suggestions.length) {
                 locate(suggestions[0]);
                 $scope.value = suggestions[0].trTitle;
-              }
-              else {
+              } else {
                 // Don't return suggestions list
                 $scope.trLocationNotfound = query;
               }
               // Don't return suggestions list
               return [];
-            }
-            // Return suggestions list
-            else {
+            } else {
+              // Return suggestions list
               return suggestions;
             }
           });

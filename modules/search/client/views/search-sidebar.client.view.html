@@ -1,0 +1,153 @@
+
+  <!-- Location search -->
+  <div class="search-sidebar-section">
+    <div class="form-group search-sidear-place" ng-class="{'has-warning': searchSidebar.locationNotFound}">
+      <div class="input-group input-location">
+        <label for="search-query" class="sr-only">Search places</label>
+        <input type="text"
+               id="search-query"
+               class="form-control input-lg"
+               placeholder="Search places"
+               ng-model="searchSidebar.searchQuery"
+               tr-location
+               tr-location-init="searchSidebar.initializeSearch"
+               tr-location-center="search.mapCenter"
+               tr-location-bounds="search.mapBounds"
+               tr-location-notfound="searchSidebar.locationNotFound">
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-lg btn-default" ng-click="searchSidebar.searchAddress()" uib-tooltip="Search" tooltip-placement="bottom">
+            <i class="icon-search"></i>
+          </button>
+        </span>
+      </div>
+      <p class="help-block" ng-if="searchSidebar.locationNotFound">
+        We could not find <em ng-bind="::searchSidebar.locationNotFound"></em><br>
+        <small>Make sure your search is spelled correctly.</small>
+      </p>
+    </div>
+  </div>
+  <!-- /Location search -->
+
+  <!-- Filters -->
+  <div class="search-sidebar-section search-sidebar-filters" ng-if="search.tribes && search.tribes.length">
+    <h4>Filter by tribes</h4>
+
+    <div class="form-group">
+      <label tr-switch tr-switch-side="right" ng-if="app.user.member.length">
+        <input type="checkbox"
+               ng-disabled="!app.user.member || !app.user.member.length"
+               ng-change="searchSidebar.onUserTribesFiltersToggle()"
+               ng-model="searchSidebar.filterByUsersTribes">
+        <ng-pluralize count="app.user.member.length" when="{ 'one': 'Show only members from my tribe', 'other': 'Show only members from my tribes' }"></ng-pluralize>
+      </label>
+      <p ng-if="!app.user.member.length" class="help-block">
+        <span class="icon-right"></span> <a ui-sref="tribes.list" class="text-muted">Join tribes to find similar users</a>
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label class="sr-only" for="languages">Tribes</label>
+      <select multiple
+              chosen
+              id="tribes"
+              class="form-control chosen-lg"
+              placeholder-text-multiple="'Choose tribes'"
+              no-results-text="'Cannot find '"
+              search-contains="true"
+              ng-change="searchSidebar.refreshTribeFilters();"
+              ng-model="searchSidebar.chosenTribes"
+              ng-options="tribe.label for tribe in ::search.tribes track by tribe._id">
+      </select>
+      <p class="text-right help-block" ng-if="searchSidebar.chosenTribes.length > 1">
+        <a class="btn btn-link btn-sm" ng-click="searchSidebar.clearTribeFilters()">Clear tribes</a>
+      </p>
+    </div>
+
+  </div>
+  <!-- /Filters -->
+
+  <!-- Search results -->
+  <div class="search-sidebar-section search-sidebar-results" ng-if="search.offer">
+
+    <!-- Profile loading -->
+    <div class="search-result panel panel-default panel-loading" ng-if="!search.offer.$resolved">
+      <div class="panel-body">
+        <div tr-avatar data-size="32" data-link="false" data-source="none"></div>
+        <h4>
+          ███ ███
+          <small class="text-muted">@███</small>
+        </h4>
+        <div class="search-result-meta">
+          █ ███, ███.
+        </div>
+        <div class="search-result-tagline">
+          █████ █████ ████
+        </div>
+        <div class="search-result-hosting">
+          <span class="search-result-label">Hosting:</span>
+          <span class="label">██</span>
+          <div class="search-result-description">██████ █████ █████</div>
+        </div>
+        <div class="search-result-languages">
+          <h4>Languages</h4>
+          <ul class="list-inline">
+            <li>████</li>
+            <li>████</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- /Profile loading -->
+
+    <!-- Profile -->
+    <div class="search-result panel panel-default" ng-if="search.offer.$resolved">
+      <a class="panel-body" ui-sref="profile.about({username: search.offer.user.username})">
+        <div tr-avatar data-size="32" data-link="false" data-user="::search.offer.user"></div>
+        <h4>
+          {{ ::search.offer.user.displayName }}
+          <small class="text-muted">@{{ ::search.offer.user.displayUsername || search.offer.user.username }}</small>
+        </h4>
+        <div class="search-result-meta">
+          <span ng-if="search.offer.user.birthdate" ng-bind="search.offer.user.birthdate | ageyears"></span><span ng-if="search.offer.user.birthdate && search.offer.user.gender">, </span>
+          <span ng-if="search.offer.user.gender" ng-class="{ 'text-capitalize': !search.offer.user.birthdate }">{{ ::search.offer.user.gender }}.</span>
+        </div>
+        <div class="search-result-tagline" ng-if="search.offer.user.tagline" ng-bind="search.offer.user.tagline"></div>
+        <div class="search-result-hosting">
+          <div class="search-result-label">
+            Hosting:
+            <span class="label"
+                  ng-class="{ 'btn-hosting-yes': search.offer.status === 'yes', 'btn-hosting-maybe': search.offer.status === 'maybe' }"
+                  ng-bind="search.offer.status"></span>
+          </div>
+
+          <!-- Short descriptions -->
+          <div class="search-result-description"
+               ng-if="search.offer.description && search.offer.description.length < 1000"
+               ng-bind-html="::search.offer.description | trustedHtml"></div>
+
+          <!-- Long descriptions -->
+          <div class="search-result-description" ng-if="search.offer.description && search.offer.description.length >= 1000">
+            <div class="panel-more-wrap">
+              <div ng-bind-html="::search.offer.description | limitTo:1000 | trustedHtml" class="panel-more-excerpt"></div>
+              <div class="panel-more-fade">Show more...</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="search-result-languages" ng-if="search.offer.user.languages.length">
+          <h4>Languages</h4>
+          <ul class="list-inline">
+            <li ng-repeat="code in ::search.offer.user.languages track by code">{{ ::app.languageNames[code] || code }}</li>
+          </ul>
+        </div>
+      </a>
+    </div>
+    <!-- /Profile -->
+
+  </div>
+  <!-- /.search-sidebar-results -->
+
+  <p class="text-muted text-center hidden-xs">
+    <br>
+    <small>Note that locations on the map are not precise.</small>
+  </p>

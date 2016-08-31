@@ -3,11 +3,6 @@
  * Try to keep this "mobile first"
  */
 
-// Variables
-@search-toolbar-opacity:            0.95;
-@search-controls-gap-mobile:        6px;
-
-
 .search {
   // Hide overlays list from the layer controller
   // @todo: This should be done at JS but isn't possible with Angular-Leaflet
@@ -19,7 +14,7 @@
   }
 }
 
-#search-map-canvas {
+.leaflet-container {
   left: 0;
   right: 0;
   width: auto;
@@ -54,4 +49,12 @@
     }
   }
   */
+}
+
+.search-map-container {
+  &.is-sidebar-open {
+    .leaflet-left {
+      left: @search-sidebar-width;
+    }
+  }
 }

@@ -6,7 +6,7 @@
     .controller('SignupController', SignupController);
 
   /* @ngInject */
-  function SignupController($rootScope, $http, $state, $stateParams, $uibModal, Authentication, UserTagsService, messageCenterService, TribeService, TribesService) {
+  function SignupController($rootScope, $http, $state, $stateParams, $uibModal, Authentication, UserMembershipsService, messageCenterService, TribeService, TribesService) {
 
     // View Model
     var vm = this;
@@ -97,7 +97,7 @@
 
           // If there is referred tribe, add user to that next up
           if (vm.tribe && vm.tribe._id) {
-            UserTagsService.post({
+            UserMembershipsService.post({
               id: vm.tribe._id,
               relation: 'is'
             },

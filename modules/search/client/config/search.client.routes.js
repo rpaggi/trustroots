@@ -12,17 +12,12 @@
       state('search', {
         url: '/search?location?offer',
         templateUrl: '/modules/search/views/search.client.view.html',
+        abstract: true,
         requiresAuth: true,
         footerHidden: true,
         controller: 'SearchController',
         controllerAs: 'search',
         resolve: {
-          // A string value resolves to a service
-          SettingsService: 'SettingsService',
-          appSettings: function(SettingsService) {
-            return SettingsService.get();
-          },
-
           // A string value resolves to a service
           TribesService: 'TribesService',
           tribes: function(TribesService) {
@@ -30,15 +25,49 @@
           },
 
           // A string value resolves to a service
-          UserProfilesService: 'UserProfilesService',
-          profile: function(UserProfilesService, Authentication) {
-            return UserProfilesService.get({
-              username: Authentication.user.username
-            });
+          OffersService: 'OffersService',
+          offer: function($stateParams, OffersService) {
+            if ($stateParams.offer && $stateParams.offer.length === 24) {
+              return OffersService.get({
+                offerId: $stateParams.offer
+              });
+            } else {
+              return false;
+            }
           }
+
         },
         data: {
           pageTitle: 'Search'
+        }
+      }).
+      state('search.map', {
+        url: '',
+        requiresAuth: true,
+        footerHidden: true,
+        data: {
+          pageTitle: 'Search'
+        },
+        views: {
+          'map': {
+            templateUrl: '/modules/search/views/search-map.client.view.html',
+            controller: 'SearchMapController',
+            controllerAs: 'searchMap'
+          },
+          'sidebar': {
+            templateUrl: '/modules/search/views/search-sidebar.client.view.html',
+            controller: 'SearchSidebarController',
+            controllerAs: 'searchSidebar',
+            resolve: {
+              // A string value resolves to a service
+              UserMembershipsService: 'UserMembershipsService',
+              memberships: function(UserMembershipsService) {
+                return UserMembershipsService.query({
+                  type: 'tribe'
+                });
+              }
+            }
+          }
         }
       }).
       state('search-signin', {
