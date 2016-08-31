@@ -121,9 +121,6 @@ exports.create = function(req, res) {
  */
 exports.list = function(req, res) {
 
-  console.log('->list');
-  console.log(req.query);
-
   var filters;
 
   if (!req.user) {
@@ -142,71 +139,7 @@ exports.list = function(req, res) {
   // Parse filters
   if (req.query.filters) {
     filters = JSON.parse(req.query.filters);
-    console.log(filters);
   }
-/*
-  Offer.find(
-    {
-      $or: [
-        { status: 'yes' },
-        { status: 'maybe' }
-      ],
-      // Note:
-      // http://docs.mongodb.org/manual/reference/operator/query/box
-      // -> It's latitude first as in the database, not longitude first as in the documentation
-      locationFuzzy: {
-        $geoWithin: {
-          $box: [
-            [Number(req.query.southWestLat), Number(req.query.southWestLng)],
-            [Number(req.query.northEastLat), Number(req.query.northEastLng)]
-          ]
-        }
-      }
-    },
-    'locationFuzzy status user'
-  )
-*/
-/*
-db.offers.aggregate([
-  {
-    $match: {
-      locationFuzzy: {
-        $geoWithin: {
-          $box: [
-            [23.24469595130604, -24.0166015625],
-            [62.909073282636484, 54.294921875]
-          ]
-        }
-      }
-    }
-  },
-  {
-    $match: {
-      $or: [
-        { status: 'yes' },
-        { status: 'maybe' }
-      ]
-    }
-  },
-  {
-    $lookup: {
-      from: "users",
-      localField: "user",
-      foreignField: "_id",
-      as: "user"
-    }
-  },
-  {
-    $match: {
-      "user.member": {
-        $elemMatch: {
-          tag: ObjectId("5708eb88afa4afb08cc9051e")
-        }
-      }
-    }
-  },
-
-  */
 
   // Basic query has always bounding box
   var query = [{
@@ -251,7 +184,6 @@ db.offers.aggregate([
     var tribeQueries = [];
 
     var isTribeFilterValid = filters.tribes.every(function(tribeId) {
-      console.log('validating ' + tribeId);
       // Return failure if tribe id is invalid, otherwise add id to query array
       return mongoose.Types.ObjectId.isValid(tribeId) && tribeQueries.push({ 'user.member.tag': new mongoose.Types.ObjectId(tribeId) });
     });
@@ -289,10 +221,6 @@ db.offers.aggregate([
       tribes: '$user.member'
     }
   });
-
-  console.log('->Offer.aggregate:');
-  var util = require('util');
-  console.log(util.inspect(query, false, null));
 
   Offer.aggregate(query).exec(function(err, offers) {
     if (err) {
