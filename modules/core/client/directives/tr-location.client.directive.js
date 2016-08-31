@@ -32,6 +32,7 @@
         value: '=ngModel',
         // `?` makes these optional
         trLocationInit: '=?',
+        trLocationChange: '=?',
         trLocationNotfound: '=?',
         trLocationCenter: '=?',
         trLocationBounds: '=?'
@@ -133,19 +134,18 @@
          */
         function locate(location) {
 
-          // Set center bounds for (Angular-UI-Leaflet) model
-          // Bounds is prioritized over center
-          var bounds = LocationService.getBounds(location);
+          // Set center bounds and center coordinates for (Angular-UI-Leaflet) model
+          var bounds = LocationService.getBounds(location),
+              center = LocationService.getCenter(location);
 
           if (angular.isObject($scope.trLocationBounds) && bounds) {
             $scope.trLocationBounds = bounds;
-          } else if (angular.isObject($scope.trLocationCenter)) {
-            // If no bounds was found, check `center`
-            // Set center coordinates for (Angular-UI-Leaflet) model
-            var center = LocationService.getCenter(location);
-            if (center) {
-              angular.extend($scope.trLocationCenter, center);
-            }
+          } else if (angular.isObject($scope.trLocationCenter) && center) {
+            angular.extend($scope.trLocationCenter, center);
+          } else if (angular.isFunction($scope.trLocationChange) && bounds) {
+            $scope.trLocationChange(bounds, 'bounds');
+          } else if (angular.isFunction($scope.trLocationChange) && center) {
+            $scope.trLocationChange(center, 'center');
           }
 
         }

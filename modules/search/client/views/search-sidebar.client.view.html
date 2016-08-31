@@ -11,8 +11,7 @@
                ng-model="searchSidebar.searchQuery"
                tr-location
                tr-location-init="searchSidebar.initializeSearch"
-               tr-location-center="search.mapCenter"
-               tr-location-bounds="search.mapBounds"
+               tr-location-change="searchSidebar.onPlaceSearch"
                tr-location-notfound="searchSidebar.locationNotFound">
         <span class="input-group-btn">
           <button type="button" class="btn btn-lg btn-default" ng-click="searchSidebar.searchAddress()" uib-tooltip="Search" tooltip-placement="bottom">
@@ -67,10 +66,10 @@
   <!-- /Filters -->
 
   <!-- Search results -->
-  <div class="search-sidebar-section search-sidebar-results" ng-if="search.offer">
+  <div class="search-sidebar-section search-sidebar-results">
 
     <!-- Profile loading -->
-    <div class="search-result panel panel-default panel-loading" ng-if="!search.offer.$resolved">
+    <div class="search-result panel panel-default panel-loading" ng-if="!search.offer && search.loadingOffer">
       <div class="panel-body">
         <div tr-avatar data-size="32" data-link="false" data-source="none"></div>
         <h4>
@@ -100,7 +99,7 @@
     <!-- /Profile loading -->
 
     <!-- Profile -->
-    <div class="search-result panel panel-default" ng-if="search.offer.$resolved">
+    <div class="search-result panel panel-default" ng-if="search.offer && !search.loadingOffer">
       <a class="panel-body" ui-sref="profile.about({username: search.offer.user.username})">
         <div tr-avatar data-size="32" data-link="false" data-user="::search.offer.user"></div>
         <h4>

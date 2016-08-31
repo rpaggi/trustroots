@@ -6,12 +6,14 @@
     .controller('SearchSidebarController', SearchSidebarController);
 
   /* @ngInject */
-  function SearchSidebarController($scope, $stateParams, $log, FiltersService) {
+  function SearchSidebarController($rootScope, $stateParams, $log, FiltersService, tribe) {
 
     // ViewModel
     var vm = this;
 
+    vm.onPlaceSearch = onPlaceSearch;
     vm.chosenTribes = [];
+    vm.filterByUsersTribes = false;
     vm.filterByUsersTribes = false;
     vm.filters = FiltersService.get();
     vm.onUserTribesFiltersToggle = onUserTribesFiltersToggle;
@@ -33,8 +35,14 @@
      */
     function activate() {
 
-      // Where there any tribe filters stored before this controller came to live?
-      if (vm.filters.tribes && vm.filters.tribes.length > 0) {
+      if (tribe && tribe._id) {
+        $log.log('sidebar found tribe');
+        $log.log(tribe);
+        // If tribe was requested from URL
+        vm.chosenTribes = [tribe];
+        vm.filters.tribes = FiltersService.set('tribes', [tribe._id]);
+      } else if (vm.filters.tribes && vm.filters.tribes.length > 0) {
+        // Where there any tribe filters stored before this controller came to live?
         $log.log('Stored filters detected...');
         $log.log(vm.filters.tribes);
         /*
@@ -44,6 +52,18 @@
         });
         vm.chosenTribes = chosenTribes;
         */
+      }
+
+    }
+
+    /**
+     * Broadcast information about changed search location
+     */
+    function onPlaceSearch(data, type) {
+      if (data && type === 'center') {
+        $rootScope.$broadcast('search.mapCenter', data);
+      } else if (data && type === 'bounds') {
+        $rootScope.$broadcast('search.mapBounds', data);
       }
     }
 
@@ -57,7 +77,7 @@
       vm.chosenTribes = [];
       vm.filters.tribes = [];
       vm.filterByUsersTribes = false;
-      $scope.$emit('search.resetMarkers');
+      $rootScope.$broadcast('search.resetMarkers');
     }
 
     /**
@@ -75,7 +95,7 @@
           })
           .then(function(tribeFilters) {
             vm.filters.tribes = tribeFilters;
-            $scope.$emit('search.resetMarkers');
+            $rootScope.$broadcast('search.resetMarkers');
           })
           .catch(function(err) {
             $log.error(err);
@@ -106,6 +126,7 @@
           })
           .then(function(tribeFilters) {
             vm.filters.tribes = tribeFilters;
+            $rootScope.$broadcast('search.resetMarkers');
           })
           .catch(function(err) {
             $log.error(err);

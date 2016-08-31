@@ -18,9 +18,6 @@
     // ViewModel
     var vm = this;
 
-    $log.log($scope);
-    $log.log(vm);
-
     // Exposed to the view
     vm.pruneCluster = new PruneClusterForLeaflet(60, 60);
     vm.mapLayerstyle = 'street';
@@ -113,6 +110,20 @@
       $scope.$on(listenerPrefix + '.moveend', onLeafletMoveEnd);
       $scope.$on(listenerPrefix + '.click', closeOffer);
 
+      // If offer gets closed elsewhere
+      $scope.$on('search.closeOffer', function() {
+        $log.log('->search.map ->search.closeOffer');
+        vm.mapLayers.overlays.selectedOffers.visible = false;
+      });
+
+      // Listen to new map location values
+      $scope.$on('search.mapCenter', function(event, mapCenter) {
+        vm.mapCenter = mapCenter;
+      });
+      $scope.$on('search.mapBounds', function(event, mapBounds) {
+        vm.mapBounds = mapBounds;
+      });
+
       // Listen to other controllers
       $scope.$on('search.resetMarkers', resetMarkers);
 
@@ -123,11 +134,12 @@
         leafletMarker.on('click', function() {
           $log.log('onClickMarker:');
           $log.log(data.userId);
+          $scope.$emit('search.loadingOffer');
           OffersService
             .get({ offerId: data.userId })
             .$promise
             .then(function(offer) {
-              openOffer(offer);
+              previewOffer(offer);
             })
             .catch(function() {
               messageCenterService.add('danger', 'Sorry, something went wrong. Please try again.');
@@ -140,7 +152,7 @@
       if ($stateParams.offer) {
         // Center map to the offer, if there is one
         if (vm.$resolve.offer) {
-          openOffer(vm.$resolve.offer);
+          previewOffer(vm.$resolve.offer);
         } else {
           // Offer not found or other error
           messageCenterService.add('danger', 'Sorry, we did not find what you are looking for.');
@@ -156,12 +168,11 @@
     /**
      * Open hosting offer
      */
-    function openOffer(offer) {
+    function previewOffer(offer) {
       if (offer.location) {
-        // Let other controllers (sidebar) know about this
-        $scope.$emit('search.openOffer', offer);
+        // Let parent controller handle setting this to scope
+        $scope.$emit('search.previewOffer', offer);
 
-        //vm.offer = offer;
         vm.currentSelection.latlngs = offer.location;
         vm.mapLayers.overlays.selectedOffers.visible = true;
         vm.isSidebarOpen = true;
@@ -241,6 +252,8 @@
         FiltersService
           .get()
           .then(function(filters) {
+            $log.log('->getMarkers -> FiltersService.get() ->');
+            $log.log(filters);
             // API Call
             OffersService.query({
               northEastLng: vm.mapLastBounds.northEastLng,

@@ -10,7 +10,7 @@
 
     $stateProvider.
       state('search', {
-        url: '/search?location?offer',
+        url: '/search?location?offer?tribe',
         templateUrl: '/modules/search/views/search.client.view.html',
         abstract: true,
         requiresAuth: true,
@@ -65,6 +65,21 @@
                 return UserMembershipsService.query({
                   type: 'tribe'
                 });
+              },
+
+              // A string value resolves to a service
+              TribeService: 'TribeService',
+              tribe: function(TribeService, $log, $stateParams) {
+                $log.log('tribe service route');
+                if ($stateParams.tribe && $stateParams.tribe.length) {
+                  $log.log('get tribe ' + $stateParams.tribe);
+                  return TribeService.get({
+                    tribeSlug: $stateParams.tribe
+                  });
+                } else {
+                  $log.log('no tribe');
+                  return false;
+                }
               }
             }
           }
