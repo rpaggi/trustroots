@@ -14,47 +14,47 @@
   }
 }
 
-.leaflet-container {
-  left: 0;
-  right: 0;
-  width: auto;
-  height: auto;
-  z-index: 0;
-  position: fixed;
-  top: @navbar-height;
-  bottom: 0;
-
-  // Move some controllers to different places from their initial corners
-  /*
-  @media (max-width: @screen-xs-max) {
-    // Zoom control on botton-right instead at small screens
-    .leaflet-top.leaflet-left {
-      left: auto;
-      top: auto;
-      bottom: 0;
-      right: 0;
-      .leaflet-control {
-        margin: 0 @search-controls-gap-mobile @search-controls-gap-mobile 0;
-      }
-    }
-    // Attribution control
-    .leaflet-bottom.leaflet-right {
-      right: 70px;
-    }
-    // Layer switch
-    .leaflet-bottom.leaflet-left {
-      .leaflet-control {
-        margin: 0 0 @search-controls-gap-mobile @search-controls-gap-mobile;
-      }
-    }
-  }
-  */
-}
-
 .search-map-container {
   &.is-sidebar-open {
     .leaflet-left {
       left: @search-sidebar-width;
     }
   }
+  .leaflet-container {
+    left: 0;
+    right: 0;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    position: fixed;
+    top: @navbar-height;
+    bottom: 0;
+
+    // Move some controllers to different places from their initial corners
+    /*
+    @media (max-width: @screen-xs-max) {
+      // Zoom control on botton-right instead at small screens
+      .leaflet-top.leaflet-left {
+        left: auto;
+        top: auto;
+        bottom: 0;
+        right: 0;
+        .leaflet-control {
+          margin: 0 @search-controls-gap-mobile @search-controls-gap-mobile 0;
+        }
+      }
+      // Attribution control
+      .leaflet-bottom.leaflet-right {
+        right: 70px;
+      }
+      // Layer switch
+      .leaflet-bottom.leaflet-left {
+        .leaflet-control {
+          margin: 0 0 @search-controls-gap-mobile @search-controls-gap-mobile;
+        }
+      }
+    }
+    */
+  }
+
 }
