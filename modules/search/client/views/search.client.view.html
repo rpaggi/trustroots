@@ -2,16 +2,18 @@
 
   <div ui-view="map"></div>
 
-  <button class="btn btn-link search-sidebar-toggle"
-          ng-if="app.user && app.user.public"
-          ng-click="search.isSidebarOpen = !search.isSidebarOpen"
-          ng-class="{ 'is-collapsed': !search.isSidebarOpen }"
-          aria-label="{{ search.isSidebarOpen ? 'Hide search' : 'Open search' }}"
-          uib-tooltip="{{ search.isSidebarOpen ? 'Collapse side panel' : 'Open side panel' }}"
-          tooltip-placement="right">
-    <i class="hidden-xs" ng-class="{ 'icon-left': search.isSidebarOpen, 'icon-right': !search.isSidebarOpen}"></i>
-    <span class="visible-xs">Back to map</span>
-  </button>
+  <div class="search-sidebar-toggle">
+    <button class="btn btn-link"
+            ng-if="app.user && app.user.public"
+            ng-click="search.isSidebarOpen = !search.isSidebarOpen"
+            ng-class="{ 'is-collapsed': !search.isSidebarOpen }"
+            aria-label="{{ search.isSidebarOpen ? 'Hide search' : 'Open search' }}"
+            uib-tooltip="{{ search.isSidebarOpen ? 'Collapse side panel' : 'Open side panel' }}"
+            tooltip-placement="right">
+      <i class="hidden-xs" ng-class="{ 'icon-left': search.isSidebarOpen, 'icon-right': !search.isSidebarOpen}"></i>
+      <span class="visible-xs">Back to map</span>
+    </button>
+  </div>
 
   <div class="search-sidebar"
        ui-view="sidebar"

@@ -29,7 +29,7 @@
 
       // If user is already signed in then redirect to search page
       if (Authentication.user) {
-        $state.go('search');
+        $state.go('search.map');
         return;
       }
 

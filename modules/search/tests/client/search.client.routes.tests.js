@@ -37,7 +37,7 @@
           // Test expected GET request
           $templateCache.put('/modules/search/views/search.client.view.html', '');
 
-          $state.go('search');
+          $state.go('search.map');
           $rootScope.$digest();
         }));
 

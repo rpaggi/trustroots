@@ -143,7 +143,7 @@
      */
     function goHome() {
       if (Authentication.user) {
-        $state.go('search');
+        $state.go('search.map');
       } else {
         $state.go('home');
       }
