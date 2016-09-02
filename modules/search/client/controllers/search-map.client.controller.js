@@ -118,11 +118,10 @@
 
       // If offer gets closed elsewhere
       $scope.$on('search.closeOffer', function() {
-        $log.log('->search.map ->search.closeOffer');
         vm.mapLayers.overlays.selectedOffers.visible = false;
       });
 
-      // Listen to new map location values
+      // Listen to new map location values from other controllers
       $scope.$on('search.mapCenter', function(event, mapCenter) {
         vm.mapCenter = mapCenter;
       });
@@ -235,6 +234,11 @@
       // - If user isn't public(confirmed) yet - no need to hit API just to get 401
       if (!vm.mapBounds.northEast || !Authentication.user.public) return;
 
+      // Don't do anything on too big zoom levels
+      if (vm.mapCenter.zoom <= vm.mapMinimumZoom) {
+        return;
+      }
+
       // If we get out of the boundig box of the last api query we have to call the API for the new markers
       if (forcedRefresh ||
           vm.mapBounds.northEast.lng > vm.mapLastBounds.northEastLng ||
@@ -319,7 +323,7 @@
     }
 
     /**
-     * When moving the map has ended
+     * When moving the map has ended. Fires also on zoom changes.
      */
     function onLeafletMoveEnd() {
       if (vm.mapCenter.zoom > vm.mapMinimumZoom) {
