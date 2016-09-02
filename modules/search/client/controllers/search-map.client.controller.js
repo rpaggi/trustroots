@@ -96,12 +96,18 @@
         vm.mapCenter = mapCenter;
       });
 
-      // Add attribution controller
+      // Wait for Leaflet object
       leafletData.getMap(mapId).then(function(map) {
+
+        // Add attribution controller
         map.addControl(L.control.attribution({
           position: 'bottomright',
           prefix: ''
         }));
+
+        // Set active area to accommodate sidebar
+        // @link https://github.com/Mappy/Leaflet-active-area
+        map.setActiveArea('search-map-active-area');
       });
 
       // Set Leaflet listeners

@@ -14,6 +14,19 @@
   }
 }
 
+// Active area where Leaflet centers etc
+// @link https://github.com/Mappy/Leaflet-active-area
+.search-map-active-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.search.is-sidebar-open .search-map-active-area {
+  left: @search-sidebar-percentage-width;
+}
+
 .search-map-container {
   &.is-sidebar-open {
     .leaflet-left {
