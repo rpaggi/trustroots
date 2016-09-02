@@ -1,12 +1,11 @@
-<section class="search">
+<section class="search" ng-class="{ 'is-sidebar-open': search.isSidebarOpen }">
 
   <div ui-view="map"></div>
 
-  <div class="search-sidebar-toggle">
+  <div class="search-sidebar-toggle"
+       ng-if="app.user && app.user.public">
     <button class="btn btn-link"
-            ng-if="app.user && app.user.public"
             ng-click="search.isSidebarOpen = !search.isSidebarOpen"
-            ng-class="{ 'is-collapsed': !search.isSidebarOpen }"
             aria-label="{{ search.isSidebarOpen ? 'Hide search' : 'Open search' }}"
             uib-tooltip="{{ search.isSidebarOpen ? 'Collapse side panel' : 'Open side panel' }}"
             tooltip-placement="right">
