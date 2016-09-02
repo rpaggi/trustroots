@@ -104,7 +104,7 @@
           // (Normally we just splash a signup page at this point)
           if (toState.name === 'profile') {
             $state.go('profile-signup');
-          } else if (toState.name === 'search') {
+          } else if (toState.name === 'search' || toState.name === 'search.map') {
             $state.go('search-signin', toParams || {});
           } else {
             // Or just continue to the signup page...
