@@ -6,7 +6,7 @@
     .controller('SearchController', SearchController);
 
   /* @ngInject */
-  function SearchController($scope, tribes, offer) {
+  function SearchController($scope, tribes, offer, Authentication) {
 
     // ViewModel
     var vm = this;
@@ -14,7 +14,7 @@
     // Exposed to the view
     vm.tribes = tribes || [];
     vm.offer = offer || false;
-    vm.isSidebarOpen = true;
+    vm.isSidebarOpen = Authentication.user && Authentication.user.public;
 
     // SearchMap controller sends these signals down
     $scope.$on('search.loadingOffer', function() {
