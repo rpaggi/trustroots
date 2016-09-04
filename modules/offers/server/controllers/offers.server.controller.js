@@ -73,10 +73,10 @@ function parseFiltersString(filtersString) {
     // but... JSON.parse(null) returns null, and typeof null === "object",
     // so we must check for that, too. Thankfully, null is falsey, so this suffices.
     // @link http://stackoverflow.com/a/20392392/1984644
-    if (filtersObject && typeof filtersObject === "object") {
+    if (filtersObject && typeof filtersObject === 'object') {
       return filtersObject;
     }
-  } catch(e) {
+  } catch (e) {
     return false;
   }
 }
@@ -157,10 +157,10 @@ exports.list = function(req, res) {
 
   // Parse filters
   if (req.query.filters && req.query.filters !== '') {
-    var filters = parseFiltersString(req.query.filters);
+    filters = parseFiltersString(req.query.filters);
 
     // Could not parse filters json string into object
-    if(!filters) {
+    if (!filters) {
       return res.status(400).send({
         message: 'Could not parse filters.'
       });
