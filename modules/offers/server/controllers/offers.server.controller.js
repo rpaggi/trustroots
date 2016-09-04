@@ -61,6 +61,25 @@ function fuzzyLocation(location) {
   return [latO, lngO];
 }
 
+/**
+ * Parse filters object from json string
+ */
+function parseFiltersString(filtersString) {
+  try {
+    var filtersObject = JSON.parse(filtersString);
+
+    // Handle non-exception-throwing cases:
+    // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+    // but... JSON.parse(null) returns null, and typeof null === "object",
+    // so we must check for that, too. Thankfully, null is falsey, so this suffices.
+    // @link http://stackoverflow.com/a/20392392/1984644
+    if (filtersObject && typeof filtersObject === "object") {
+      return filtersObject;
+    }
+  } catch(e) {
+    return false;
+  }
+}
 
 /**
  * Create (or update if exists) a Offer
@@ -137,8 +156,16 @@ exports.list = function(req, res) {
   }
 
   // Parse filters
-  if (req.query.filters) {
-    filters = JSON.parse(req.query.filters);
+  if (req.query.filters && req.query.filters !== '') {
+    var filters = parseFiltersString(req.query.filters);
+
+    // Could not parse filters json string into object
+    if(!filters) {
+      return res.status(400).send({
+        message: 'Could not parse filters.'
+      });
+    }
+
   }
 
   // Basic query has always bounding box
