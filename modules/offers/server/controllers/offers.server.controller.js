@@ -204,6 +204,11 @@ exports.list = function(req, res) {
       as: 'user'
     }
   });
+  // Because above `$lookup` returns and array with one user
+  // `[{userObject}]`, we have to unwind it back to `{userObject}`
+  query.push({
+    $unwind: '$user'
+  });
 
   // Tribes filter
   if (filters && filters.tribes && filters.tribes.length > 0) {
