@@ -6,7 +6,7 @@
     .controller('SearchMapController', SearchMapController);
 
   /* @ngInject */
-  function SearchMapController($log, $scope, $stateParams, $timeout, $analytics, OffersService, Authentication, leafletData, messageCenterService, MapLayersFactory, SearchMapService, FiltersService) {
+  function SearchMapController($scope, $stateParams, $timeout, $analytics, OffersService, Authentication, leafletData, messageCenterService, MapLayersFactory, SearchMapService, FiltersService) {
 
     // `search-map-canvas` is id of <leaflet> element
     var mapId = 'search-map-canvas';
@@ -134,11 +134,7 @@
 
       // Setting up the marker and click event
       vm.pruneCluster.PrepareLeafletMarker = function(leafletMarker, data) {
-        $log.log('->PrepareLeafletMarker');
-        $log.log(data);
         leafletMarker.on('click', function() {
-          $log.log('onClickMarker:');
-          $log.log(data.userId);
           $scope.$emit('search.loadingOffer');
           OffersService
             .get({ offerId: data.userId })
@@ -219,7 +215,6 @@
      * Force refresh markers on map
      */
     function resetMarkers() {
-      $log.log('->resetMarkers');
       getMarkers(true);
     }
 
@@ -227,7 +222,6 @@
      * Load markers to the current bounding box
      */
     function getMarkers(forcedRefresh) {
-      $log.log('->getMarkers: ' + forcedRefresh);
 
       // Don't proceed if:
       // - Map does not have bounds set (typically at map init these might be missing for some milliseconds)
@@ -262,8 +256,6 @@
         FiltersService
           .get()
           .then(function(filters) {
-            $log.log('->getMarkers -> FiltersService.get() ->');
-            $log.log(filters);
             // API Call
             OffersService.query({
               northEastLng: vm.mapLastBounds.northEastLng,
@@ -294,6 +286,8 @@
               // Update markers
               // eslint-disable-next-line new-cap
               vm.pruneCluster.ProcessView();
+            }, function(error) {
+              messageCenterService.add('danger', 'Sorry, something went wrong. Please try again.');
             });
           });
       }
