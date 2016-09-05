@@ -391,7 +391,6 @@ describe('Offer CRUD tests', function() {
             // Call the assertion callback
             return done();
           });
-
       });
   });
 
@@ -429,7 +428,6 @@ describe('Offer CRUD tests', function() {
             // Call the assertion callback
             return done();
           });
-
       });
   });
 
@@ -465,7 +463,6 @@ describe('Offer CRUD tests', function() {
               // Call the assertion callback
               return done();
             });
-
         });
     });
   });
@@ -525,6 +522,52 @@ describe('Offer CRUD tests', function() {
             offersGetRes.body[user3Order].tribes[0].tag.should.equal(tribe1Id.toString());
             offersGetRes.body[user3Order].tribes[0].since.should.not.be.empty();
             offersGetRes.body[user3Order].tribes[0].relation.should.equal(user3.member[0].relation);
+
+            // Call the assertion callback
+            return done();
+          });
+      });
+  });
+
+  it('should be able able to send empty filter request', function(done) {
+    agent.post('/api/auth/signin')
+      .send(credentials)
+      .expect(200)
+      .end(function(signinErr) {
+        // Handle signin error
+        if (signinErr) return done(signinErr);
+
+        agent.get('/api/offers' + queryBoundingBox + '&filters=')
+          .expect(200)
+          .end(function(offersGetErr, offersGetRes) {
+            // Handle offer get error
+            if (offersGetErr) return done(offersGetErr);
+
+            // Set assertions
+            offersGetRes.body.length.should.equal(2);
+
+            // Call the assertion callback
+            return done();
+          });
+      });
+  });
+
+  it('should not be able to send non-json filter request', function(done) {
+    agent.post('/api/auth/signin')
+      .send(credentials)
+      .expect(200)
+      .end(function(signinErr) {
+        // Handle signin error
+        if (signinErr) return done(signinErr);
+
+        agent.get('/api/offers' + queryBoundingBox + '&filters={wrong}')
+          .expect(400)
+          .end(function(offersGetErr, offersGetRes) {
+            // Handle offer get error
+            if (offersGetErr) return done(offersGetErr);
+
+            // Set assertions
+            offersGetRes.body.message.should.equal('Could not parse filters.');
 
             // Call the assertion callback
             return done();
