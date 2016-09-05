@@ -140,8 +140,6 @@ exports.create = function(req, res) {
  */
 exports.list = function(req, res) {
 
-  var filters;
-
   if (!req.user) {
     return res.status(403).send({
       message: errorHandler.getErrorMessageByKey('forbidden')
@@ -156,6 +154,7 @@ exports.list = function(req, res) {
   }
 
   // Parse filters
+  var filters;
   if (req.query.filters && req.query.filters !== '') {
     filters = parseFiltersString(req.query.filters);
 
@@ -244,6 +243,14 @@ exports.list = function(req, res) {
   }
 
   // Pick fields to receive
+  /**
+   * Could return something like this here already (so no need to refactor at frontend):
+   *
+   * lat: marker.locationFuzzy[0],
+   * lng: marker.locationFuzzy[1],
+   * user: marker.user,
+   * icon: $scope.icons[marker.status]
+   */
   query.push({
     $project: {
       _id: '$_id',
@@ -261,14 +268,6 @@ exports.list = function(req, res) {
       });
     } else {
 
-      /**
-       * Could return something like this here already (so no need to refactor at frontend):
-       *
-       * lat: marker.locationFuzzy[0],
-       * lng: marker.locationFuzzy[1],
-       * user: marker.user,
-       * icon: $scope.icons[marker.status]
-       */
       res.json(offers);
     }
   });

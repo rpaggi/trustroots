@@ -3,9 +3,11 @@
 var should = require('should'),
     request = require('supertest'),
     path = require('path'),
+    async = require('async'),
     mongoose = require('mongoose'),
     User = mongoose.model('User'),
     Offer = mongoose.model('Offer'),
+    Tag = mongoose.model('Tag'),
     express = require(path.resolve('./config/lib/express'));
 
 /**
@@ -16,10 +18,23 @@ var app,
     credentials,
     user1,
     user2,
+    user3,
     user1Id,
     user2Id,
+    user3Id,
     offer1,
-    offer2;
+    offer2,
+    offer3,
+    tribe1,
+    tribe2,
+    tribe1Id,
+    tribe2Id;
+
+var queryBoundingBox =
+  '?northEastLat=55.31212135084999' +
+  '&northEastLng=18.73318142361111' +
+  '&southWestLat=44.66407507240992' +
+  '&southWestLng=3.689914279513889';
 
 /**
  * Offer routes tests
@@ -34,7 +49,7 @@ describe('Offer CRUD tests', function() {
     done();
   });
 
-  beforeEach(function(done) {
+  beforeEach(function(doneBeforeEach) {
     // Create userFrom credentials
     credentials = {
       username: 'loremipsum',
@@ -47,6 +62,7 @@ describe('Offer CRUD tests', function() {
       lastName: 'Name',
       displayName: 'Full Name',
       email: 'test1@test.com',
+      member: [],
       username: credentials.username,
       password: credentials.password,
       provider: 'local',
@@ -59,7 +75,20 @@ describe('Offer CRUD tests', function() {
       lastName: 'Name',
       displayName: 'Full Name',
       email: 'test2@test.com',
+      member: [],
       username: credentials.username + '2',
+      password: credentials.password,
+      provider: 'local',
+      public: true
+    });
+
+    // Create a new user
+    user3 = new User({
+      firstName: 'Full',
+      lastName: 'Name',
+      displayName: 'Full Name',
+      email: 'test3@test.com',
+      username: credentials.username + '3',
       password: credentials.password,
       provider: 'local',
       public: true
@@ -84,27 +113,98 @@ describe('Offer CRUD tests', function() {
       locationFuzzy: [52.50155039101136, 13.42255019882177]
     });
 
-    // Save user to the test db
-    user1.save(function(err) {
-      should.not.exist(err);
-      user2.save(function(err) {
-        should.not.exist(err);
-        // Check id for user1
-        User.findOne({ 'username': user1.username }, function(err, user1) {
-          should.not.exist(err);
-          user1Id = user1._id;
-          // Check id for user2
-          User.findOne({ 'username': user1.username }, function(err, user2) {
-            should.not.exist(err);
-            user2Id = user2._id;
-            offer2.user = user2Id;
-            offer2.save(function(err) {
-              should.not.exist(err);
-              return done();
-            });
-          });
+    offer3 = new Offer({
+      status: 'yes',
+      description: '<p>3 I can host! :)</p>',
+      noOfferDescription: '<p>3 I cannot host... :(</p>',
+      maxGuests: 1,
+      updated: new Date(),
+      location: [52.498981209298775, 13.418329954147338],
+      locationFuzzy: [52.50155039101135, 13.42255019882176]
+    });
+
+    tribe1 = new Tag({
+      'slug': 'tribe1',
+      'label': 'tribe1',
+      'color': '111111',
+      'tribe': true,
+      'count': 1,
+      'public': true
+    });
+
+    tribe2 = new Tag({
+      'slug': 'tribe2',
+      'label': 'tribe2',
+      'color': '222222',
+      'tribe': true,
+      'count': 1,
+      'public': true
+    });
+
+    // Save data to the test db
+    async.waterfall([
+      // Save tribe 1
+      function(done) {
+        tribe1.save(function(err, tribe1) {
+          tribe1Id = tribe1._id;
+          done(err);
         });
-      });
+      },
+      // Save tribe 2
+      function(done) {
+        tribe2.save(function(err, tribe2) {
+          tribe2Id = tribe2._id;
+          done(err);
+        });
+      },
+      // Save user 1 (without tribe membership)
+      function(done) {
+        user1.save(function(err, user1res) {
+          user1Id = user1res._id;
+          done(err);
+        });
+      },
+      // Save user 2 (with tribe membership)
+      function(done) {
+        user2.member = [{
+          tag: tribe2Id,
+          since: new Date(),
+          relation: 'is'
+        }];
+        user2.save(function(err, user2res) {
+          user2Id = user2res._id;
+          done(err);
+        });
+      },
+      // Save user 3 (with tribe membership)
+      function(done) {
+        user3.member = [{
+          tag: tribe1Id,
+          since: new Date(),
+          relation: 'is'
+        }];
+        user3.save(function(err, user3res) {
+          user3Id = user3res._id;
+          return done(err);
+        });
+      },
+      // Save hosting offer 2
+      function(done) {
+        offer2.user = user2Id;
+        offer2.save(function(err) {
+          done(err);
+        });
+      },
+      // Save hosting offer 3
+      function(done) {
+        offer3.user = user3Id;
+        offer3.save(function(err) {
+          done(err);
+        });
+      }
+    ], function(err) {
+      should.not.exist(err);
+      doneBeforeEach(err);
     });
   });
 
@@ -123,6 +223,7 @@ describe('Offer CRUD tests', function() {
 
   it('should be able to read offers of other users when logged in', function(done) {
     agent.post('/api/auth/signin')
+      // Logged in as `user1`
       .send(credentials)
       .expect(200)
       .end(function(signinErr) {
@@ -143,7 +244,7 @@ describe('Offer CRUD tests', function() {
             offerGetRes.body.noOfferDescription.should.equal(offer2.noOfferDescription);
             offerGetRes.body.maxGuests.should.equal(offer2.maxGuests);
             offerGetRes.body.location.should.be.instanceof(Array).and.have.lengthOf(2);
-            offerGetRes.body.location.should.deepEqual([offer2.location[0], offer2.location[1]]);
+            offerGetRes.body.location.should.deepEqual([offer2.locationFuzzy[0], offer2.locationFuzzy[1]]);
             offerGetRes.body.updated.should.not.be.empty();
             should.not.exist(offerGetRes.body.locationFuzzy);
 
@@ -235,12 +336,7 @@ describe('Offer CRUD tests', function() {
 
   it('should not be able to get list of offers from an area if not logged in', function(done) {
     // Get offers (around Berlin)
-    agent.get('/api/offers' +
-        '?northEastLat=55.31212135084999' +
-        '&northEastLng=18.73318142361111' +
-        '&southWestLat=44.66407507240992' +
-        '&southWestLng=3.689914279513889'
-      )
+    agent.get('/api/offers' + queryBoundingBox)
       .expect(403)
       .end(function(offersGetErr, offersGetRes) {
         // Handle offer get error
@@ -262,12 +358,56 @@ describe('Offer CRUD tests', function() {
         if (signinErr) return done(signinErr);
 
         // Get offers (around Berlin)
-        agent.get('/api/offers' +
-            '?northEastLat=55.31212135084999' +
-            '&northEastLng=18.73318142361111' +
-            '&southWestLat=44.66407507240992' +
-            '&southWestLng=3.689914279513889'
-          )
+        agent.get('/api/offers' + queryBoundingBox)
+          .expect(200)
+          .end(function(offersGetErr, offersGetRes) {
+            // Handle offer get error
+            if (offersGetErr) return done(offersGetErr);
+
+            // MongoDb returns these in random order, figure out order here
+            if (offersGetRes.body[0].user === user2Id.toString()) {
+              var user2Order = 0;
+              var user3Order = 1;
+            } else {
+              var user2Order = 1;
+              var user3Order = 0;
+            }
+
+            // Set assertions
+            offersGetRes.body.length.should.equal(2);
+
+            offersGetRes.body[user2Order].user.should.equal(user2Id.toString());
+            offersGetRes.body[user2Order].status.should.equal(offer2.status);
+            offersGetRes.body[user2Order].locationFuzzy.should.be.instanceof(Array).and.have.lengthOf(2);
+            offersGetRes.body[user2Order].locationFuzzy.should.deepEqual([offer2.locationFuzzy[0], offer2.locationFuzzy[1]]);
+            offersGetRes.body[user2Order]._id.should.not.be.empty();
+
+            offersGetRes.body[user3Order].user.should.equal(user3Id.toString());
+            offersGetRes.body[user3Order].status.should.equal(offer3.status);
+            offersGetRes.body[user3Order].locationFuzzy.should.be.instanceof(Array).and.have.lengthOf(2);
+            offersGetRes.body[user3Order].locationFuzzy.should.deepEqual([offer3.locationFuzzy[0], offer3.locationFuzzy[1]]);
+            offersGetRes.body[user3Order]._id.should.not.be.empty();
+
+            // Call the assertion callback
+            return done();
+          });
+
+      });
+  });
+
+  it('should be able to get list of offers from an area filtered by one tribe', function(done) {
+    agent.post('/api/auth/signin')
+      .send(credentials)
+      .expect(200)
+      .end(function(signinErr) {
+        // Handle signin error
+        if (signinErr) return done(signinErr);
+
+        // Get offers (around Berlin)
+        var filters = {
+          tribes: [tribe2Id]
+        };
+        agent.get('/api/offers' + queryBoundingBox + '&filters=' + encodeURIComponent(JSON.stringify(filters)))
           .expect(200)
           .end(function(offersGetErr, offersGetRes) {
             // Handle offer get error
@@ -280,6 +420,111 @@ describe('Offer CRUD tests', function() {
             offersGetRes.body[0].locationFuzzy.should.be.instanceof(Array).and.have.lengthOf(2);
             offersGetRes.body[0].locationFuzzy.should.deepEqual([offer2.locationFuzzy[0], offer2.locationFuzzy[1]]);
             offersGetRes.body[0]._id.should.not.be.empty();
+
+            offersGetRes.body[0].tribes.length.should.equal(1);
+            offersGetRes.body[0].tribes[0].tag.should.equal(tribe2Id.toString());
+            offersGetRes.body[0].tribes[0].since.should.not.be.empty();
+            offersGetRes.body[0].tribes[0].relation.should.equal(user2.member[0].relation);
+
+            // Call the assertion callback
+            return done();
+          });
+
+      });
+  });
+
+  it('should be able to get list of offers from an area filtered by tribes and not get tribe-less offers', function(done) {
+    user3.member = [];
+    user3.save(function (err, user3res) {
+      should.not.exist(err);
+      user3res.member.length.should.equal(0);
+      agent.post('/api/auth/signin')
+        .send(credentials)
+        .expect(200)
+        .end(function(signinErr) {
+          // Handle signin error
+          if (signinErr) return done(signinErr);
+
+          // Get offers (around Berlin)
+          var filters = {
+            tribes: [tribe1Id, tribe2Id]
+          };
+          agent.get('/api/offers' + queryBoundingBox + '&filters=' + encodeURIComponent(JSON.stringify(filters)))
+            .expect(200)
+            .end(function(offersGetErr, offersGetRes) {
+              // Handle offer get error
+              if (offersGetErr) return done(offersGetErr);
+
+              // Set assertions
+              offersGetRes.body.length.should.equal(1);
+
+              // User 2
+              offersGetRes.body[0].user.should.equal(user2Id.toString());
+              offersGetRes.body[0].tribes.length.should.equal(1);
+
+              // Call the assertion callback
+              return done();
+            });
+
+        });
+    });
+  });
+
+  it('should be able to get list of offers from an area filtered by many tribes', function(done) {
+    agent.post('/api/auth/signin')
+      .send(credentials)
+      .expect(200)
+      .end(function(signinErr) {
+        // Handle signin error
+        if (signinErr) return done(signinErr);
+
+        // Get offers (around Berlin)
+        var filters = {
+          tribes: [tribe1Id, tribe2Id]
+        };
+        agent.get('/api/offers' + queryBoundingBox + '&filters=' + encodeURIComponent(JSON.stringify(filters)))
+          .expect(200)
+          .end(function(offersGetErr, offersGetRes) {
+            // Handle offer get error
+            if (offersGetErr) return done(offersGetErr);
+
+            // Set assertions
+            offersGetRes.body.length.should.equal(2);
+
+            // MongoDb returns these in random order, figure out order here
+            if (offersGetRes.body[0].user === user2Id.toString()) {
+              var user2Order = 0;
+              var user3Order = 1;
+            } else {
+              var user2Order = 1;
+              var user3Order = 0;
+            }
+
+            // User 2 offer
+            offersGetRes.body[user2Order].user.should.equal(user2Id.toString());
+            offersGetRes.body[user2Order].status.should.equal(offer2.status);
+            offersGetRes.body[user2Order].locationFuzzy.should.be.instanceof(Array).and.have.lengthOf(2);
+            offersGetRes.body[user2Order].locationFuzzy.should.deepEqual([offer2.locationFuzzy[0], offer2.locationFuzzy[1]]);
+            offersGetRes.body[user2Order]._id.should.not.be.empty();
+
+            // User 2 offer tribes
+            offersGetRes.body[user2Order].tribes.length.should.equal(1);
+            offersGetRes.body[user2Order].tribes[0].tag.should.equal(tribe2Id.toString());
+            offersGetRes.body[user2Order].tribes[0].since.should.not.be.empty();
+            offersGetRes.body[user2Order].tribes[0].relation.should.equal(user2.member[0].relation);
+
+            // User 3 offer
+            offersGetRes.body[user3Order].user.should.equal(user3Id.toString());
+            offersGetRes.body[user3Order].status.should.equal(offer3.status);
+            offersGetRes.body[user3Order].locationFuzzy.should.be.instanceof(Array).and.have.lengthOf(2);
+            offersGetRes.body[user3Order].locationFuzzy.should.deepEqual([offer3.locationFuzzy[0], offer3.locationFuzzy[1]]);
+            offersGetRes.body[user3Order]._id.should.not.be.empty();
+
+            // User 3 offer tribes
+            offersGetRes.body[user3Order].tribes.length.should.equal(1);
+            offersGetRes.body[user3Order].tribes[0].tag.should.equal(tribe1Id.toString());
+            offersGetRes.body[user3Order].tribes[0].since.should.not.be.empty();
+            offersGetRes.body[user3Order].tribes[0].relation.should.equal(user3.member[0].relation);
 
             // Call the assertion callback
             return done();
@@ -341,7 +586,9 @@ describe('Offer CRUD tests', function() {
   afterEach(function(done) {
     // Uggggly pyramid revenge!
     User.remove().exec(function() {
-      Offer.remove().exec(done);
+      Tag.remove().exec(function() {
+        Offer.remove().exec(done);
+      });
     });
   });
 });
