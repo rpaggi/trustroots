@@ -365,12 +365,11 @@ describe('Offer CRUD tests', function() {
             if (offersGetErr) return done(offersGetErr);
 
             // MongoDb returns these in random order, figure out order here
+            var user2Order = 1;
+            var user3Order = 0;
             if (offersGetRes.body[0].user === user2Id.toString()) {
-              var user2Order = 0;
-              var user3Order = 1;
-            } else {
-              var user2Order = 1;
-              var user3Order = 0;
+              user2Order = 0;
+              user3Order = 1;
             }
 
             // Set assertions
@@ -489,12 +488,11 @@ describe('Offer CRUD tests', function() {
             offersGetRes.body.length.should.equal(2);
 
             // MongoDb returns these in random order, figure out order here
+            var user2Order = 1;
+            var user3Order = 0;
             if (offersGetRes.body[0].user === user2Id.toString()) {
-              var user2Order = 0;
-              var user3Order = 1;
-            } else {
-              var user2Order = 1;
-              var user3Order = 0;
+              user2Order = 0;
+              user3Order = 1;
             }
 
             // User 2 offer

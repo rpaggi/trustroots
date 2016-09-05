@@ -286,7 +286,7 @@
               // Update markers
               // eslint-disable-next-line new-cap
               vm.pruneCluster.ProcessView();
-            }, function(error) {
+            }, function() {
               messageCenterService.add('danger', 'Sorry, something went wrong. Please try again.');
             });
           });
