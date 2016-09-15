@@ -3,4 +3,4 @@
 /**
   Template rendering function
 */
-module.exports = require('consolidate').swig;
+module.exports = require('express-hbs');
