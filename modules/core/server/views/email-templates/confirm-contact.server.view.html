@@ -38,11 +38,11 @@
                                               <p>Hey {{name}}!</p>
                                               <p><a href="{{meURL}}">{{meName}}</a> would like to connect with you on Trustroots.</p>
 
-                                              {% if messageHTML %}
+                                              {{#if messageHTML }}
                                               <div class="message">
                                                 {{messageHTML | safe }}
                                               </div>
-                                              {% endif %}
+                                              {{/if}}
 
                                               <p>To confirm or discard this connection, please click the link below.</p>
                                           </td>
@@ -63,7 +63,7 @@
   </tr>
   <!-- // MODULE ROW -->
 
-  {% include 'partials/button.server.view.html' with {'buttonUrl': urlConfirm, 'buttonTitle': 'See connection'} %}
+  {{> button buttonUrl=urlConfirm buttonTitle='See connection' }}
 
   {% include 'partials/copypasteurl.server.view.html' with {'url': urlConfirmPlainText} %}
 
