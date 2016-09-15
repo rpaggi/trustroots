@@ -1,6 +1,6 @@
-{% extends 'email.server.view.html' %}
+{{!< email}}
 
-{% block content %}
+{{#contentFor 'content'}}
 
   <!-- MODULE ROW // -->
   <tr>
@@ -64,4 +64,4 @@
 
   {% include 'partials/copypasteurl.server.view.html' with {'url': urlConfirmPlainText} %}
 
-{% endblock %}
+{{/contentFor}}

@@ -1,6 +1,6 @@
-{% extends 'email.server.view.html' %}
+{{!< email}}
 
-{% block content %}
+{{#contentFor 'content'}}
 {{name}},
 
 Thank you very much for signing up with us.
@@ -11,4 +11,4 @@ It's easy — just click on the link below.
 
 <{{urlConfirmPlainText}}>
 
-{% endblock %}
+{{/contentFor}}

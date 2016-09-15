@@ -119,11 +119,11 @@ module.exports.initMiddleware = function (app) {
  */
 module.exports.initViewEngine = function (app) {
   // Set swig as the template engine
-  app.engine('server.view.html', render.express4);
+  app.engine('server.view.html', render.express4({extname: '.server.view.html'}));
 
   // Set views path and view engine
   app.set('view engine', 'server.view.html');
-  app.set('views', './');
+  app.set('views', path.resolve('./'));
 };
 
 /**

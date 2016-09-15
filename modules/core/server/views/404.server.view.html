@@ -1,8 +1,8 @@
-{% extends 'layout.server.view.html' %}
+{{!< layout}}
 
-{% block header %}{% endblock %}
+{{#contentFor 'header'}}{{/contentFor}}
 
-{% block content %}
+{{#contentFor 'content'}}
   <section class="container container-fullscreen container-error board board-error">
     <div class="middle-wrapper middle-wrapper-horizontal">
       <div class="middle-content">
@@ -19,6 +19,6 @@
       </div>
     </div>
   </section>
-{% endblock %}
+{{/contentFor}}
 
-{% block footer %}{% endblock %}
+{{#contentFor 'footer'}}{{/contentFor}}

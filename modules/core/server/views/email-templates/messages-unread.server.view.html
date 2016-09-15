@@ -1,6 +1,6 @@
-{% extends 'email.server.view.html' %}
+{{!< email}}
 
-{% block content %}
+{{#contentFor 'content'}}
 
   <!-- MODULE ROW // -->
   <tr>
@@ -68,4 +68,4 @@
 
   {% include 'partials/button.server.view.html' with {'buttonUrl': urlReply, 'buttonTitle': 'Reply to ' + userFromName } %}
 
-{% endblock %}
+{{/contentFor}}
