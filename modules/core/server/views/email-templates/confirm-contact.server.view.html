@@ -63,8 +63,8 @@
   </tr>
   <!-- // MODULE ROW -->
 
-  {{> button buttonUrl=urlConfirm buttonTitle='See connection' }}
+  {{> 'partials/button.server.view.html' buttonUrl=urlConfirm buttonTitle='See connection' }}
 
-  {% include 'partials/copypasteurl.server.view.html' with {'url': urlConfirmPlainText} %}
+  {{> 'partials/copypasteurl.server.view.html' url=urlConfirmPlainText}}
 
 {{/contentFor}}

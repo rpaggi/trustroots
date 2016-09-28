@@ -38,15 +38,15 @@
 
                                               <p>Hello {{userToName}}!</p>
 
-                                              {% if messageCount > 1 %}
+                                              {{#if messageCount > 1}}
                                                 <p>You have {{ messageCount }} unread messages from <strong><a href="{{urlUserFromProfile}}">{{userFromName}}</a></strong> at Trustroots.</p>
-                                              {% else %}
+                                              {{else}}
                                                 <p>You have one unread message from <strong>{{userFromName}}</strong> at Trustroots.</p>
-                                              {% endif %}
+                                              {{/if}}
 
-                                              {% for message in messages %}
-                                                {% include 'partials/message.server.view.html' with {'message': message.content, date: message.created} %}
-                                              {% endfor %}
+                                              {{#messages}}
+                                                {{> 'partials/message.server.view.html' message=content date=created}}
+                                              {{/each}}
 
                                           </td>
                                       </tr>
@@ -65,7 +65,6 @@
       </td>
   </tr>
   <!-- // MODULE ROW -->
-
-  {% include 'partials/button.server.view.html' with {'buttonUrl': urlReply, 'buttonTitle': 'Reply to ' + userFromName } %}
+  {{> 'partials/button.server.view.html' buttonUrl=urlReply buttonTitle='Reply to ' + userFromName}}
 
 {{/contentFor}}

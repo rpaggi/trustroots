@@ -113,7 +113,7 @@
   <div id="tr-wrap">
 
     {{#contentFor 'header'}}
-      {% include 'partials/header.server.view.html' %}
+      {{> 'partials/header.server.view..html'}}
     {{/contentFor}}
 
     {# Flash messages #}
@@ -126,7 +126,7 @@
   </div>
 
   {{#contentFor 'footer'}}
-    {% include 'partials/footer.server.view.html' %}
+    {{> 'partials/footer.server.view.html'}}
   {{/contentFor}}
 
   {# Embedding constants coming from the backend #}
@@ -135,7 +135,7 @@
         title = "{{title}}",
         settings = {{ appSettings | json | safe }},
         languages = {{ languages | json | safe }},
-        {% if facebookAppId !== "APP_ID" %}facebookAppId = "{{facebookAppId}}",{% endif %}
+        {{#if facebookAppId !== "APP_ID" }}facebookAppId = "{{facebookAppId}}",{{/if}}
         env = "{{ env }}";
   </script>
 
