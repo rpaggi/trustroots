@@ -1,5 +1,5 @@
-{% if request.reportMember %}Reporting member: {{request.reportMember}}
-{% endif %}
+{{#if request.reportMember }}Reporting member: {{request.reportMember}}
+{{/if}}
 {{request.message}}
 
 
@@ -11,4 +11,4 @@ Browser: {{request.userAgent}}
 ID: {{request.userId}}
 Signup confirmed: {{request.profilePublic}}
 Signup date: {{request.signupDate}}
-{% if request.emailTemp %}Active email change: {{request.emailTemp}}{% endif %}
+{{#if request.emailTemp }}Active email change: {{request.emailTemp}}{{/if}}

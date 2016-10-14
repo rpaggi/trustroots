@@ -5,13 +5,13 @@
  #
  #-->
  #}
-{% if mailTitle %}{{ mailTitle }}{% else %}{{title}}{% endif %}
+{{#if mailTitle}}{{ mailTitle }}{{else}{{title}}{{/if}}
 ----------------------------------------------------------------------
 
-{% block content %}{% endblock %}
+{{#contentFor 'content'}}{{/contentFor}}
 
 -- {# These two dashes should have space after them and this line stops .editorconfig stripping it out. #}
 Trustroots
-{% if urlFooterPlainText %}{{urlFooterPlainText}}{% endif %}
+{{#if urlFooterPlainText }}{{urlFooterPlainText}}{{/if}}
 
-Remember, I'm just a little mail robot so don't reply this email. {% if urlSupportPlainText %}Contact us if you want to talk to a human: <{{urlSupportPlainText}}>{% endif %}
+Remember, I'm just a little mail robot so don't reply this email. {{#if urlSupportPlainText }}Contact us if you want to talk to a human: <{{urlSupportPlainText}}>{{/if}}
